@@ -1,0 +1,418 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Badminton Ladder Flow</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        .step-active { color: #3b82f6; border-bottom: 2px solid #3b82f6; }
+        .tab-content { display: none; }
+        .tab-content.active { display: block; }
+        input::-webkit-outer-spin-button, input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
+    </style>
+</head>
+<body class="bg-gray-50 min-h-screen pb-20">
+
+    <header class="bg-white shadow-sm sticky top-0 z-10">
+        <div class="max-w-5xl mx-auto px-4">
+            <div class="flex justify-between items-center h-16">
+                <h1 class="text-xl font-bold text-gray-800 flex items-center gap-2">
+                    <i data-lucide="shuttlecock" class="text-blue-500"></i> LadderFlow
+                </h1>
+                <button onclick="confirmWipe()" class="text-xs bg-red-50 text-red-600 px-3 py-1 rounded border border-red-100 hover:bg-red-100 transition">Wipe State</button>
+            </div>
+            <nav class="flex justify-between text-sm font-medium border-t">
+                <button onclick="showStep(1)" id="step1-btn" class="py-4 px-2 flex-1 text-center border-b-2 border-transparent hover:text-blue-500 transition-all">1. Ladder</button>
+                <button onclick="showStep(2)" id="step2-btn" class="py-4 px-2 flex-1 text-center border-b-2 border-transparent hover:text-blue-500 transition-all">2. Attendance</button>
+                <button onclick="showStep(3)" id="step3-btn" class="py-4 px-2 flex-1 text-center border-b-2 border-transparent hover:text-blue-500 transition-all">3. Boxes</button>
+                <button onclick="showStep(4)" id="step4-btn" class="py-4 px-2 flex-1 text-center border-b-2 border-transparent hover:text-blue-500 transition-all">4. New Ladder</button>
+            </nav>
+        </div>
+    </header>
+
+    <main class="max-w-5xl mx-auto p-4 mt-4">
+        <!-- Step 1: Ladder Import -->
+        <section id="step1" class="tab-content active bg-white p-6 rounded-xl shadow-sm border text-center">
+            <h2 class="text-lg font-semibold mb-4 text-left">Initial Ladder</h2>
+            <div class="border-2 border-dashed border-gray-200 rounded-lg p-12 mb-6 hover:border-blue-300 transition-colors bg-gray-50/50">
+                <input type="file" id="csvImport" accept=".csv" class="hidden" onchange="handleImport(event)">
+                <label for="csvImport" class="cursor-pointer">
+                    <i data-lucide="file-up" class="mx-auto h-12 w-12 text-gray-400 mb-2"></i>
+                    <p class="text-blue-600 font-medium">Upload ladder1.csv</p>
+                    <p class="text-xs text-gray-500 mt-1">Headers and extra columns will be ignored</p>
+                </label>
+            </div>
+            <div id="ladderPreview" class="overflow-hidden rounded-lg border border-gray-100 text-left"></div>
+        </section>
+
+        <!-- Step 2: Attendance -->
+        <section id="step2" class="tab-content bg-white p-6 rounded-xl shadow-sm border">
+            <div class="sticky top-16 bg-white pb-4 z-10">
+                <div class="relative">
+                    <i data-lucide="search" class="absolute left-3 top-3 h-4 w-4 text-gray-400"></i>
+                    <input type="text" id="playerSearch" placeholder="Filter names... (Enter to toggle)" 
+                        class="w-full pl-10 pr-4 py-2 border rounded-lg focus:ring-2 focus:ring-blue-500 outline-none"
+                        onkeyup="handleSearch(event)">
+                </div>
+            </div>
+            <div id="attendanceList" class="space-y-2 mt-4"></div>
+        </section>
+
+        <!-- Step 3: Boxes -->
+        <section id="step3" class="tab-content space-y-6">
+            <div id="boxesContainer" class="space-y-8"></div>
+        </section>
+
+        <!-- Step 4: Final Results -->
+        <section id="step4" class="tab-content bg-white p-6 rounded-xl shadow-sm border">
+            <div class="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4">
+                <h2 class="text-lg font-semibold">Updated Standings</h2>
+                <div class="flex gap-2">
+                    <button id="filterAttending" onclick="toggleLadderFilter()" class="text-xs border px-4 py-2 rounded hover:bg-gray-50">Show Attendees Only</button>
+                    <button onclick="exportCSV()" class="text-xs bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700 font-bold">Export CSV</button>
+                </div>
+            </div>
+            <div id="finalLadderDisplay" class="overflow-hidden rounded-lg border border-gray-100"></div>
+        </section>
+    </main>
+
+    <script>
+        let state = {
+            ladder: [], 
+            attendance: {}, 
+            scores: {}, 
+            filterOnlyAttending: false
+        };
+
+        let currentBoxesData = []; 
+
+        const loadState = () => {
+            const saved = sessionStorage.getItem('badmintonLadderState');
+            if (saved) {
+                state = JSON.parse(saved);
+                renderLadder();
+                renderAttendance();
+            }
+            showStep(1);
+        };
+
+        const saveState = () => sessionStorage.setItem('badmintonLadderState', JSON.stringify(state));
+
+        const confirmWipe = () => { if(confirm("Clear all data?")) { sessionStorage.clear(); location.reload(); } };
+
+        const showStep = (step) => {
+            document.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+            document.querySelectorAll('nav button').forEach(b => b.classList.remove('step-active'));
+            document.getElementById(`step${step}`).classList.add('active');
+            document.getElementById(`step${step}-btn`).classList.add('step-active');
+            
+            if (step === 3) generateBoxes();
+            if (step === 4) calculateFinalLadder();
+            lucide.createIcons();
+            window.scrollTo(0,0);
+        };
+
+        const handleImport = (e) => {
+            const file = e.target.files[0];
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                const rows = event.target.result.split('\n');
+                const importedData = [];
+                rows.forEach(row => {
+                    const cols = row.split(',').map(s => s.trim().replace(/^"|"$/g, ''));
+                    const pos = parseInt(cols[0]);
+                    const name = cols[1];
+                    if (!isNaN(pos) && name && name.length > 1) importedData.push({ position: pos, name });
+                });
+                state.ladder = importedData.sort((a,b) => a.position - b.position);
+                state.attendance = {};
+                state.scores = {}; 
+                saveState();
+                renderLadder();
+                renderAttendance();
+            };
+            reader.readAsText(file);
+        };
+
+        const renderLadder = () => {
+            const div = document.getElementById('ladderPreview');
+            if (!state.ladder.length) return;
+            div.innerHTML = `<table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b"><tr><th class="px-4 py-2 text-left">Pos</th><th class="px-4 py-2 text-left">Name</th></tr></thead>
+                <tbody>${state.ladder.map(p => `<tr class="border-b"><td class="px-4 py-1 text-gray-500">${p.position}</td><td class="px-4 py-1">${p.name}</td></tr>`).slice(0, 15).join('')}</tbody>
+            </table>`;
+        };
+
+        const renderAttendance = () => {
+            const list = document.getElementById('attendanceList');
+            list.innerHTML = state.ladder.map(p => `
+                <div onclick="toggleAttendance('${p.name}')" class="flex items-center justify-between p-3 rounded-lg border cursor-pointer transition ${state.attendance[p.name] ? 'bg-blue-50 border-blue-400' : 'bg-white hover:bg-gray-50'}">
+                    <span class="text-sm font-medium truncate">${p.name}</span>
+                    <div class="w-5 h-5 rounded border flex items-center justify-center ${state.attendance[p.name] ? 'bg-blue-500 border-blue-500 text-white' : 'bg-gray-100'}">
+                        ${state.attendance[p.name] ? '<i data-lucide="check" class="h-3 w-3"></i>' : ''}
+                    </div>
+                </div>
+            `).join('');
+            lucide.createIcons();
+        };
+
+        const toggleAttendance = (name) => { state.attendance[name] = !state.attendance[name]; saveState(); renderAttendance(); };
+
+        const handleSearch = (e) => {
+            const val = e.target.value.toLowerCase();
+            const items = document.getElementById('attendanceList').children;
+            let first = null;
+            state.ladder.forEach((p, i) => {
+                const match = p.name.toLowerCase().includes(val);
+                items[i].classList.toggle('hidden', !match);
+                if (match && !first) first = p.name;
+            });
+            if (e.key === 'Enter' && first) { toggleAttendance(first); e.target.value = ''; state.ladder.forEach((p, i) => items[i].classList.remove('hidden')); }
+        };
+
+        // --- Core Box Logic ---
+        
+        const buildBoxesData = () => {
+            const attendees = state.ladder.filter(p => state.attendance[p.name]);
+            const n = attendees.length;
+            if (n < 4) { currentBoxesData = []; return; }
+
+            let bCount = Math.min(6, Math.floor(n / 4));
+            while (n / bCount > 7) bCount++;
+            const sizes = Array(bCount).fill(Math.floor(n/bCount));
+            for(let i=0; i<(n%bCount); i++) sizes[bCount-1-i]++;
+
+            let ptr = 0;
+            currentBoxesData = sizes.map((size, idx) => {
+                const b = { id: idx, players: attendees.slice(ptr, ptr + size) };
+                ptr += size;
+                return b;
+            });
+        };
+
+        const getDoublesPairings = (n) => {
+            // Arrays are 0-indexed. E.g., 1 & 2 vs 3 & 4 becomes [0,1] vs [2,3]
+            const S = {
+                4: [
+                    {t1:[0,1], t2:[2,3]}, {t1:[0,2], t2:[1,3]}, {t1:[0,3], t2:[1,2]}
+                ],
+                5: [
+                    {t1:[0,1], t2:[2,4]}, {t1:[2,3], t2:[1,4]}, {t1:[3,4], t2:[0,2]}, 
+                    {t1:[0,3], t2:[1,2]}, {t1:[1,3], t2:[0,4]}
+                ],
+                6: [
+                    {t1:[0,5], t2:[2,4]}, {t1:[1,2], t2:[0,3]}, {t1:[1,4], t2:[3,5]}, 
+                    {t1:[1,5], t2:[0,2]}, {t1:[2,5], t2:[3,4]}, {t1:[0,4], t2:[1,3]}
+                ],
+                7: [
+                    {t1:[0,1], t2:[2,3]}, {t1:[0,4], t2:[1,5]}, {t1:[0,2], t2:[4,6]}, 
+                    {t1:[0,3], t2:[5,6]}, {t1:[1,6], t2:[2,5]}, {t1:[1,4], t2:[3,6]}, 
+                    {t1:[2,4], t2:[3,5]}
+                ]
+            };
+            return S[n] || S[4];
+        };
+
+        // Helper to extract clean first name (handles '*** Shivam ***', 'O Connor', etc.)
+        const getShortName = (fullName) => {
+            if (!fullName) return '';
+            // Strip leading/trailing non-alphanumeric chars, then grab first sequence
+            return fullName.replace(/^[^a-zA-Z0-9]+|[^a-zA-Z0-9]+$/g, '').split(/\s+/)[0];
+        };
+
+        const saveScore = (bIdx, mIdx, s, team, val) => {
+            const key = `b${bIdx}m${mIdx}s${s}${team}`;
+            if (val === '') delete state.scores[key];
+            else state.scores[key] = parseInt(val) || 0;
+            
+            saveState();
+            renderBoxStats(bIdx); // Live update the table!
+        };
+
+        const getScore = (bIdx, mIdx, s, team) => {
+            const key = `b${bIdx}m${mIdx}s${s}${team}`;
+            return state.scores[key] !== undefined ? state.scores[key] : '';
+        };
+
+        // Calculates matches, sets, and points for a specific box based on current state
+        const calculateBoxStats = (bIdx) => {
+            const box = currentBoxesData[bIdx];
+            const pairings = getDoublesPairings(box.players.length);
+            let stats = box.players.map((p, i) => ({ idx: i, name: p.name, pos: p.position, mW:0, sD:0, pD:0 }));
+            
+            pairings.forEach((m, mIdx) => {
+                let s1=0, s2=0, p1=0, p2=0;
+                [1,2,3].forEach(s => {
+                    const v1 = state.scores[`b${bIdx}m${mIdx}s${s}t1`];
+                    const v2 = state.scores[`b${bIdx}m${mIdx}s${s}t2`];
+                    if (v1 === undefined && v2 === undefined) return; 
+
+                    const pts1 = parseInt(v1) || 0;
+                    const pts2 = parseInt(v2) || 0;
+                    p1 += pts1; p2 += pts2;
+                    if(pts1 > pts2) s1++; else if(pts2 > pts1) s2++;
+                });
+                
+                const winner = s1 > s2 ? 't1' : (s2 > s1 ? 't2' : null);
+                [...m.t1, ...m.t2].forEach(pIdx => {
+                    const isT1 = m.t1.includes(pIdx);
+                    if(winner) { if((winner==='t1' && isT1) || (winner==='t2' && !isT1)) stats[pIdx].mW++; }
+                    stats[pIdx].sD += isT1 ? (s1 - s2) : (s2 - s1);
+                    stats[pIdx].pD += isT1 ? (p1 - p2) : (p2 - p1);
+                });
+            });
+            
+            stats.sort((a,b) => b.mW - a.mW || b.sD - a.sD || b.pD - a.pD || a.pos - b.pos);
+            return stats;
+        };
+
+        const renderBoxStats = (bIdx) => {
+            const stats = calculateBoxStats(bIdx);
+            const container = document.getElementById(`box-stats-${bIdx}`);
+            if (!container) return;
+
+            container.innerHTML = `
+                <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-2 mt-6">Current Standings</h4>
+                <div class="overflow-x-auto border rounded-lg bg-white shadow-sm">
+                    <table class="w-full text-xs text-left">
+                        <thead class="bg-gray-50 border-b">
+                            <tr>
+                                <th class="px-3 py-2 text-gray-500 font-semibold">Rank</th>
+                                <th class="px-3 py-2 text-gray-500 font-semibold">Player</th>
+                                <th class="px-3 py-2 text-center text-gray-500 font-semibold">Match W</th>
+                                <th class="px-3 py-2 text-center text-gray-500 font-semibold">Set Diff</th>
+                                <th class="px-3 py-2 text-center text-gray-500 font-semibold">Pt Diff</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            ${stats.map((s, i) => `
+                                <tr class="border-b last:border-0 hover:bg-gray-50">
+                                    <td class="px-3 py-2 font-bold ${i < 2 ? 'text-green-600' : (i >= stats.length - 2 ? 'text-red-500' : 'text-gray-600')}">${i + 1}</td>
+                                    <td class="px-3 py-2 font-medium">${s.name}</td>
+                                    <td class="px-3 py-2 text-center font-bold">${s.mW}</td>
+                                    <td class="px-3 py-2 text-center ${s.sD > 0 ? 'text-green-600' : (s.sD < 0 ? 'text-red-500' : '')}">${s.sD > 0 ? '+'+s.sD : s.sD}</td>
+                                    <td class="px-3 py-2 text-center ${s.pD > 0 ? 'text-green-600' : (s.pD < 0 ? 'text-red-500' : '')}">${s.pD > 0 ? '+'+s.pD : s.pD}</td>
+                                </tr>
+                            `).join('')}
+                        </tbody>
+                    </table>
+                </div>
+            `;
+        };
+
+        const generateBoxes = () => {
+            buildBoxesData();
+            if (currentBoxesData.length === 0) { 
+                document.getElementById('boxesContainer').innerHTML = `<div class="p-12 text-center text-gray-400">Min 4 attendees required.</div>`; 
+                return; 
+            }
+
+            document.getElementById('boxesContainer').innerHTML = currentBoxesData.map((box, bIdx) => {
+                const pairings = getDoublesPairings(box.players.length);
+                return `
+                <div class="bg-white rounded-xl shadow-sm border overflow-hidden">
+                    <div class="p-4 bg-gray-50 border-b flex justify-between items-center">
+                        <h3 class="font-bold text-lg">Box ${bIdx + 1}</h3>
+                        <span class="text-xs bg-blue-100 text-blue-700 px-3 py-1 rounded-full">${box.players.length} Players</span>
+                    </div>
+                    <div class="p-4 grid grid-cols-1 lg:grid-cols-4 gap-6">
+                        <div class="lg:col-span-1 space-y-2">
+                            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest">Lineup</h4>
+                            ${box.players.map((p, i) => `<div class="p-2 bg-gray-50 rounded text-sm flex gap-3 font-medium"><span class="text-blue-400 font-bold">${i+1}</span>${p.name}</div>`).join('')}
+                        </div>
+                        <div class="lg:col-span-3">
+                            <h4 class="text-[10px] font-black text-gray-400 uppercase tracking-widest mb-3">Doubles Round Robin</h4>
+                            <div class="space-y-3">
+                                ${pairings.map((m, mIdx) => `
+                                    <div class="p-4 border rounded-lg hover:border-blue-200 transition-colors">
+                                        <div class="flex flex-col sm:flex-row items-center gap-4">
+                                            <div class="w-full sm:w-1/3 text-xs font-bold text-right text-gray-600">${m.t1.map(i=>getShortName(box.players[i].name)).join(' & ')}</div>
+                                            <div class="flex gap-2">
+                                                ${[1,2,3].map(s => `
+                                                    <div class="flex flex-col gap-1">
+                                                        <span class="text-[8px] text-center text-gray-400">S${s}</span>
+                                                        <div class="flex gap-0.5">
+                                                            <input type="number" oninput="saveScore(${bIdx}, ${mIdx}, ${s}, 't1', this.value)" class="w-8 h-8 text-center border rounded-l text-sm outline-none focus:bg-blue-50" value="${getScore(bIdx, mIdx, s, 't1')}">
+                                                            <input type="number" oninput="saveScore(${bIdx}, ${mIdx}, ${s}, 't2', this.value)" class="w-8 h-8 text-center border-y border-r rounded-r text-sm outline-none focus:bg-blue-50" value="${getScore(bIdx, mIdx, s, 't2')}">
+                                                        </div>
+                                                    </div>
+                                                `).join('')}
+                                            </div>
+                                            <div class="w-full sm:w-1/3 text-xs font-bold text-left text-gray-600">${m.t2.map(i=>getShortName(box.players[i].name)).join(' & ')}</div>
+                                        </div>
+                                    </div>
+                                `).join('')}
+                            </div>
+                            <!-- Container for dynamically injected table -->
+                            <div id="box-stats-${bIdx}"></div>
+                        </div>
+                    </div>
+                </div>`;
+            }).join('');
+
+            // Immediately render the stats tables for all generated boxes
+            currentBoxesData.forEach((box, bIdx) => renderBoxStats(bIdx));
+        };
+
+        const calculateFinalLadder = () => {
+            buildBoxesData(); 
+            const attendees = state.ladder.filter(p => state.attendance[p.name]);
+            if (!attendees.length || currentBoxesData.length === 0) return;
+            
+            const occupiedRungs = attendees.map(p => p.position).sort((a,b) => a - b);
+            
+            // Generate sorted results utilizing the same calculation as the live tables
+            currentBoxesData.forEach((box, bIdx) => {
+                box.sortedResults = calculateBoxStats(bIdx);
+            });
+
+            // 2-up, 2-down exchange logic
+            const finalSortedNames = [];
+            for(let i=0; i < currentBoxesData.length; i++) {
+                const cur = currentBoxesData[i].sortedResults.map(r => r.name);
+                const nxt = currentBoxesData[i+1] ? currentBoxesData[i+1].sortedResults.map(r => r.name) : null;
+                
+                if(i === 0) finalSortedNames.push(...cur.slice(0, 2));
+                finalSortedNames.push(...cur.slice(2, -2));
+                if(nxt) finalSortedNames.push(...nxt.slice(0, 2), ...cur.slice(-2));
+                else finalSortedNames.push(...cur.slice(-2));
+            }
+
+            const resultsMap = {};
+            finalSortedNames.forEach((name, idx) => { resultsMap[name] = occupiedRungs[idx]; });
+            
+            state.tempNewLadder = state.ladder.map(p => ({
+                position: state.attendance[p.name] ? resultsMap[p.name] : p.position,
+                name: p.name
+            })).sort((a,b) => a.position - b.position);
+            
+            renderFinalLadder();
+        };
+
+        const renderFinalLadder = () => {
+            const div = document.getElementById('finalLadderDisplay');
+            if (!state.tempNewLadder) return;
+            const data = state.filterOnlyAttending ? state.tempNewLadder.filter(p => state.attendance[p.name]) : state.tempNewLadder;
+            
+            div.innerHTML = `<table class="w-full text-sm">
+                <thead class="bg-gray-50"><tr><th class="px-4 py-3 text-left">Rank</th><th class="px-4 py-3 text-left">Name</th></tr></thead>
+                <tbody>${data.map(p => `<tr class="border-b"><td class="px-4 py-2 text-gray-400 font-mono">${p.position}</td><td class="px-4 py-2 ${state.attendance[p.name] ? 'font-bold text-blue-600' : ''}">${p.name}</td></tr>`).join('')}</tbody>
+            </table>`;
+        };
+
+        const exportCSV = () => {
+            const csv = state.tempNewLadder.map(p => `${p.position},${p.name}`).join("\n");
+            const link = document.createElement('a');
+            link.href = 'data:text/csv;charset=utf-8,' + encodeURIComponent(csv);
+            link.download = `ladder_update_${new Date().toLocaleDateString()}.csv`;
+            link.click();
+        };
+
+        const toggleLadderFilter = () => { state.filterOnlyAttending = !state.filterOnlyAttending; renderFinalLadder(); };
+
+        window.onload = loadState;
+    </script>
+</body>
+</html>
