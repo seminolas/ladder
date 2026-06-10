@@ -26,6 +26,7 @@ function appData() {
 
     // UI helpers
     attendanceSearch: '',
+    highlightIdx: -1,
     addPlayerName: '',
     addPlayerPos: null,
     showAddPlayer: false,
@@ -295,6 +296,50 @@ function appData() {
 
     get attendingCount() {
       return this.session?.attendees.length ?? 0;
+    },
+
+    // ── Search keyboard navigation ─────────────────────────────────────────
+    onSearchInput() {
+      this.highlightIdx = this.attendanceSearch.trim() ? 0 : -1;
+    },
+
+    attendanceKeydown(e) {
+      if (this.showAddPlayer) return;
+      const players = this.filteredPlayers;
+
+      if (e.key === 'ArrowDown') {
+        e.preventDefault();
+        if (!players.length) return;
+        this.highlightIdx = this.highlightIdx < players.length - 1 ? this.highlightIdx + 1 : 0;
+        this._scrollHighlighted();
+      } else if (e.key === 'ArrowUp') {
+        e.preventDefault();
+        if (!players.length) return;
+        this.highlightIdx = this.highlightIdx > 0 ? this.highlightIdx - 1 : players.length - 1;
+        this._scrollHighlighted();
+      } else if (e.key === 'Enter') {
+        e.preventDefault();
+        const idx = this.highlightIdx >= 0 ? this.highlightIdx : 0;
+        if (players[idx]) {
+          this.toggleAttendance(players[idx].name);
+          this.attendanceSearch = '';
+          this.highlightIdx = -1;
+        }
+      } else if (e.key === 'Escape') {
+        this.attendanceSearch = '';
+        this.highlightIdx = -1;
+      }
+    },
+
+    _scrollHighlighted() {
+      this.$nextTick(() => {
+        document.querySelector('.player-row-highlighted')?.scrollIntoView({ block: 'nearest' });
+      });
+    },
+
+    clearSearch() {
+      this.attendanceSearch = '';
+      this.highlightIdx = -1;
     },
 
     // ── Add new player ─────────────────────────────────────────────────────

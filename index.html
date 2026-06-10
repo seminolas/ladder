@@ -229,7 +229,11 @@
       <!-- Search + Assign Boxes -->
       <div class="flex gap-2 mb-3 no-print items-center">
         <div class="relative flex-1">
-          <input type="search" x-model="attendanceSearch" placeholder="Search players…"
+          <input type="search" x-model="attendanceSearch"
+                 @input="onSearchInput()"
+                 @keydown="attendanceKeydown($event)"
+                 placeholder="Search players…"
+                 autocomplete="off"
                  class="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700"
                  :disabled="session?.status === 'in_progress' || session?.status === 'closed'">
           <span class="absolute right-3 top-2.5 text-gray-400 text-xs"
@@ -246,9 +250,12 @@
 
       <!-- Player list -->
       <div class="bg-white rounded-xl shadow divide-y mb-4">
-        <template x-for="p in filteredPlayers" :key="p.name">
-          <div @click="toggleAttendance(p.name)"
-               :class="isAttending(p.name) ? 'bg-green-50' : ''"
+        <template x-for="(p, pi) in filteredPlayers" :key="p.name">
+          <div @click="toggleAttendance(p.name); clearSearch()"
+               :class="{
+                 'bg-green-50': isAttending(p.name),
+                 'bg-blue-50 player-row-highlighted': pi === highlightIdx
+               }"
                class="flex items-center px-4 py-3 text-sm cursor-pointer hover:bg-gray-50 select-none">
             <span class="w-8 text-gray-400 text-xs" x-text="p.rank"></span>
             <span class="flex-1" x-text="p.name"></span>
