@@ -421,29 +421,37 @@
                 <div class="mb-5 pb-5 border-b last:border-b-0">
                   <p class="text-xs text-gray-400 font-medium mb-2">Match <span x-text="mi+1"></span></p>
 
-                  <!-- Pair names + vs on one line -->
-                  <div class="flex items-baseline mb-2 gap-1">
-                    <span class="flex-1 text-right font-semibold text-sm text-gray-800 pr-2"
-                          x-text="pairLabel(box, match.pair1)"></span>
-                    <span class="shrink-0 text-gray-400 text-xs font-medium">vs</span>
-                    <span class="flex-1 font-semibold text-sm text-gray-800 pl-2"
-                          x-text="pairLabel(box, match.pair2)"></span>
+                  <!-- Pair names + vs — same 3-col structure as set rows -->
+                  <div class="flex items-baseline mb-2">
+                    <div class="flex-1 flex justify-end pr-3">
+                      <span class="font-semibold text-sm text-gray-800"
+                            x-text="pairLabel(box, match.pair1)"></span>
+                    </div>
+                    <div class="w-8 text-center shrink-0">
+                      <span class="text-gray-400 text-xs font-medium">vs</span>
+                    </div>
+                    <div class="flex-1 pl-3">
+                      <span class="font-semibold text-sm text-gray-800"
+                            x-text="pairLabel(box, match.pair2)"></span>
+                    </div>
                   </div>
 
-                  <!-- One row per set -->
+                  <!-- One row per set: Set label sits right of pair1 name, left of its input -->
                   <template x-for="setIdx in [0, 1, 2]" :key="setIdx">
-                    <div class="flex items-center gap-1 mb-1.5"
+                    <div class="flex items-center mb-1.5"
                          x-show="setIdx < 2 || (match.sets[0]?.length && match.sets[1]?.length)">
-                      <span class="shrink-0 text-xs text-gray-500 w-10">Set <span x-text="setIdx + 1"></span></span>
-                      <div class="flex-1 flex justify-end pr-2">
+                      <div class="flex-1 flex justify-end items-center gap-2 pr-3">
+                        <span class="text-xs text-gray-400 shrink-0">Set <span x-text="setIdx + 1"></span></span>
                         <input type="number" min="0" max="99"
                                :value="match.sets[setIdx]?.[0] ?? ''"
                                @change="setScore(bi, mi, setIdx, 0, $event.target.value); saveScores()"
                                :disabled="session.status === 'closed'"
                                class="w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none">
                       </div>
-                      <span class="shrink-0 text-gray-300 text-xs w-4 text-center">–</span>
-                      <div class="flex-1 pl-2">
+                      <div class="w-8 text-center shrink-0">
+                        <span class="text-gray-300 text-sm">–</span>
+                      </div>
+                      <div class="flex-1 pl-3">
                         <input type="number" min="0" max="99"
                                :value="match.sets[setIdx]?.[1] ?? ''"
                                @change="setScore(bi, mi, setIdx, 1, $event.target.value); saveScores()"

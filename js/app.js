@@ -409,7 +409,7 @@ function appData() {
     // ── Score entry ────────────────────────────────────────────────────────
     // Returns label like "Rory & Shivam"
     pairLabel(box, pairIndices) {
-      return pairIndices.map(i => box.players[i].split(' ')[0]).join(' & ');
+      return pairIndices.map(i => this.firstName(box.players[i])).join(' & ');
     },
 
     // First alphabetic word from a player name, stripping leading/trailing stars
