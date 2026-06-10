@@ -1,6 +1,6 @@
 {
   "date": "2026-06-16",
-  "status": "boxes_assigned",
+  "status": "in_progress",
   "attendees": [
     "Rory Weston",
     "Aashay Shah",
@@ -27,7 +27,12 @@
             2,
             4
           ],
-          "sets": []
+          "sets": [
+            [
+              1,
+              ""
+            ]
+          ]
         },
         {
           "pair1": [
