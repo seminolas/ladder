@@ -135,61 +135,61 @@ function allScoresComplete(boxes) {
   return true;
 }
 
+// Given boxes already sorted by result (1st place first), build the new attendee
+// order by cascading 2-up-2-down across every adjacent pair of boxes.
+//
+// Rule: for every adjacent pair (curr, next):
+//   - next's top 2 promote into curr's territory
+//   - curr's bottom 2 demote into next's territory
+//   - curr's "neutral zone" = everyone except its bottom 2 (box-of-4: none; box-of-5: 1; box-of-6: 2; box-of-7: 3)
+//
+// The last box has no lower neighbour so its bottom 2 stay in place.
+function buildAttendeeOrder(sortedBoxes) {
+  if (sortedBoxes.length === 0) return [];
+
+  const order = [];
+
+  // First box: everyone except the bottom 2 stays in this box's territory.
+  order.push(...sortedBoxes[0].slice(0, -2));
+
+  for (let i = 0; i + 1 < sortedBoxes.length; i++) {
+    const curr = sortedBoxes[i];
+    const next = sortedBoxes[i + 1];
+
+    order.push(next[0], next[1]);         // next's top 2 promote into curr's bottom
+    order.push(...curr.slice(-2));         // curr's bottom 2 demote into next's top
+    order.push(...next.slice(2, -2));      // next's neutral zone (empty for box-of-4)
+  }
+
+  // Last box: bottom 2 stay (nothing below to demote into).
+  order.push(...sortedBoxes[sortedBoxes.length - 1].slice(-2));
+
+  return order;
+}
+
 // Build new leaderboard by applying 2-up-2-down to attending players.
 // Non-attending players keep their absolute positions.
-// Pattern for pairs of boxes: B1_1, B1_2, B2_1, B2_2, B1_rest..., B2_rest...
-// In a box-of-5: 3rd place is treated as neutral (inserted in middle of their pair-group).
 function applyLeaderboardUpdate(boxes, leaderboardBefore) {
-  // Sort each box's players by their final placing
-  const boxRankings = boxes.map(box => {
+  const sortedBoxes = boxes.map(box => {
     const standings = computeBoxStandings(box, leaderboardBefore);
     return standings.map(s => s.name);
   });
 
-  const newAttendeeOrder = [];
+  const newAttendeeOrder = buildAttendeeOrder(sortedBoxes);
 
-  for (let i = 0; i < boxRankings.length; i += 2) {
-    const b1 = boxRankings[i];
-    const b2 = i + 1 < boxRankings.length ? boxRankings[i + 1] : [];
-    const b1Size = boxes[i].players.length;
-    const b2Size = b2.length > 0 ? boxes[i + 1].players.length : 0;
-
-    // Top 2 from b1, top 2 from b2
-    newAttendeeOrder.push(b1[0]);
-    if (b1[1] !== undefined) newAttendeeOrder.push(b1[1]);
-    if (b2[0] !== undefined) newAttendeeOrder.push(b2[0]);
-    if (b2[1] !== undefined) newAttendeeOrder.push(b2[1]);
-
-    // 3rd place from b1 if box-of-5 (neutral — stays in middle)
-    if (b1Size === 5 && b1[2] !== undefined) newAttendeeOrder.push(b1[2]);
-
-    // Remaining from b1 (index 2 for box-of-4, index 3 for box-of-5)
-    const b1Start = b1Size === 5 ? 3 : 2;
-    for (let j = b1Start; j < b1.length; j++) newAttendeeOrder.push(b1[j]);
-
-    // 3rd place from b2 if box-of-5
-    if (b2Size === 5 && b2[2] !== undefined) newAttendeeOrder.push(b2[2]);
-
-    // Remaining from b2
-    const b2Start = b2Size === 5 ? 3 : 2;
-    for (let j = b2Start; j < b2.length; j++) newAttendeeOrder.push(b2[j]);
-  }
-
-  // Gather all attendees and their current leaderboard slot indices (sorted)
+  // Gather the leaderboard slots occupied by all attendees (sorted by position).
   const allAttendees = boxes.flatMap(b => b.players);
   const attendeeSlots = allAttendees
     .map(name => leaderboardBefore.indexOf(name))
     .filter(i => i !== -1)
     .sort((a, b) => a - b);
 
-  // New attendees might include players added mid-session not in leaderboardBefore
-  // Place them at end if so
   const newLeaderboard = [...leaderboardBefore];
   newAttendeeOrder.forEach((name, i) => {
     if (i < attendeeSlots.length) {
       newLeaderboard[attendeeSlots[i]] = name;
     } else {
-      newLeaderboard.push(name); // new player not in previous leaderboard
+      newLeaderboard.push(name); // new player added mid-session
     }
   });
 
@@ -213,4 +213,17 @@ function nextTuesday(fromDate) {
 function formatDate(isoDate) {
   const d = new Date(isoDate + 'T00:00:00');
   return d.toLocaleDateString('en-NZ', { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' });
+}
+
+if (typeof module !== 'undefined') {
+  module.exports = {
+    getPairings,
+    assignBoxes,
+    computeBoxStandings,
+    allScoresComplete,
+    buildAttendeeOrder,
+    applyLeaderboardUpdate,
+    nextTuesday,
+    formatDate,
+  };
 }

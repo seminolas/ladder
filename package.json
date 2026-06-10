@@ -1,0 +1,26 @@
+{
+  "name": "temp-badminton",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "test:unit": "node --test tests/algorithm.test.js"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/seminolas/ladder.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "commonjs",
+  "bugs": {
+    "url": "https://github.com/seminolas/ladder/issues"
+  },
+  "homepage": "https://github.com/seminolas/ladder#readme",
+  "devDependencies": {
+    "@playwright/test": "^1.60.0",
+    "dotenv": "^17.4.2"
+  }
+}
