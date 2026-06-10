@@ -1,13 +1,58 @@
 {
   "date": "2026-06-16",
-  "status": "attendance",
+  "status": "boxes_assigned",
   "attendees": [
     "Rory Weston",
     "Aashay Shah",
     "Arun Nair",
     "dang"
   ],
-  "boxes": [],
+  "boxes": [
+    {
+      "players": [
+        "Rory Weston",
+        "Aashay Shah",
+        "Arun Nair",
+        "dang"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    }
+  ],
   "leaderboardBefore": [
     "Rory Weston",
     "*** Shivam ***",
