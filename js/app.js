@@ -10,6 +10,7 @@ function appData() {
 
     // GitHub config
     cfg: { owner: '', repo: '', pat: '' },
+    branch: null,
 
     // Leaderboard
     leaderboard: [],
@@ -39,6 +40,7 @@ function appData() {
         return;
       }
 
+      this.branch = await Storage.getBranch();
       await this.loadHome();
 
       // Handle hash routing
@@ -94,6 +96,29 @@ function appData() {
 
     get mostRecentSession() {
       return this.sessionDates[0] || null;
+    },
+
+    // ── Staging reset ──────────────────────────────────────────────────────
+    async resetStagingData() {
+      if (!confirm('Delete all session files from staging? The leaderboard will be kept.')) return;
+      this.loading = true;
+      try {
+        const files = await Storage.listSessionFiles();
+        for (const f of files) {
+          await Storage.deleteFile(f.path, f.sha);
+        }
+        this.sessionDates = [];
+        this.mostRecentSessionStatus = null;
+        this.session = null;
+        this.sessionSha = null;
+        this.view = 'home';
+        location.hash = '/';
+        this.showToast(`Cleared ${files.length} session(s). Leaderboard kept.`);
+      } catch (e) {
+        this.showToast(e.message, 'error');
+      } finally {
+        this.loading = false;
+      }
     },
 
     // ── CSV Import ─────────────────────────────────────────────────────────

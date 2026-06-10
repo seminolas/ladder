@@ -134,6 +134,17 @@
       </div>
     </div>
 
+    <!-- Staging dev tools -->
+    <template x-if="branch === 'staging'">
+      <div class="mb-3 no-print flex items-center gap-2 text-xs text-orange-500">
+        <span class="px-1.5 py-0.5 bg-orange-100 rounded font-mono font-semibold">STAGING</span>
+        <button @click="resetStagingData()" class="underline hover:text-orange-700">
+          Reset test data
+        </button>
+        <span class="text-gray-300">— deletes all sessions, keeps leaderboard</span>
+      </div>
+    </template>
+
     <!-- Import CSV -->
     <div class="mb-4 no-print">
       <label class="inline-block text-sm text-gray-500 hover:text-blue-700 cursor-pointer">

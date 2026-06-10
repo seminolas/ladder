@@ -90,6 +90,11 @@ const Storage = (() => {
   }
 
   async function listSessions() {
+    const files = await listSessionFiles();
+    return files.map(f => f.date);
+  }
+
+  async function listSessionFiles() {
     const { owner, repo, pat } = getConfig();
     if (!owner || !repo) return [];
     const branch = await getBranch();
@@ -104,9 +109,23 @@ const Storage = (() => {
     const files = await res.json();
     return files
       .filter(f => f.name.endsWith('.json'))
-      .map(f => f.name.replace('.json', ''))
-      .sort()
-      .reverse();
+      .map(f => ({ date: f.name.replace('.json', ''), path: f.path, sha: f.sha }))
+      .sort((a, b) => b.date.localeCompare(a.date));
+  }
+
+  async function deleteFile(path, sha) {
+    const { owner, repo, pat } = getConfig();
+    if (!pat) throw new Error('No PAT configured — cannot delete');
+    const branch = await getBranch();
+
+    const body = { message: `Delete ${path}`, sha, branch };
+    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
+    const res = await fetch(url, { method: 'DELETE', headers: headers(pat), body: JSON.stringify(body) });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `GitHub delete failed: ${res.status}`);
+    }
   }
 
   async function getLeaderboard() {
@@ -126,5 +145,5 @@ const Storage = (() => {
     return writeFile(`data/sessions/${date}.json`, sessionData, sha);
   }
 
-  return { getConfig, saveConfig, isConfigured, getBranch, getLeaderboard, saveLeaderboard, getSession, saveSession, listSessions };
+  return { getConfig, saveConfig, isConfigured, getBranch, getLeaderboard, saveLeaderboard, getSession, saveSession, listSessions, listSessionFiles, deleteFile };
 })();
