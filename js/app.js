@@ -418,6 +418,22 @@ function appData() {
       return clean.match(/[a-zA-ZÀ-ÖØ-öø-ÿ]+/)?.[0] ?? clean.trim();
     },
 
+    // Display name for print column headers: first name, or "First I." if another
+    // player in the same box shares that first name
+    boxDisplayName(box, playerIdx) {
+      const name = box.players[playerIdx];
+      const first = this.firstName(name);
+      const hasDuplicate = box.players.some(
+        (other, i) => i !== playerIdx && this.firstName(other) === first
+      );
+      if (!hasDuplicate) return first;
+      const clean = name.replace(/^\*+\s*|\s*\*+$/g, '').trim();
+      const words = clean.split(/\s+/).filter(w => /[a-zA-ZÀ-ÖØ-öø-ÿ]/.test(w));
+      if (words.length < 2) return first;
+      const initial = words[words.length - 1].match(/[a-zA-ZÀ-ÖØ-öø-ÿ]/)?.[0];
+      return initial ? `${first} ${initial.toUpperCase()}.` : first;
+    },
+
     isSitout(boxIndex, matchIndex, playerIndex) {
       const box = this.session.boxes[boxIndex];
       if (box.players.length !== 5) return false;

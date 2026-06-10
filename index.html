@@ -339,11 +339,20 @@
                   <template x-for="p in box.players" :key="p"><col></template>
                 </colgroup>
                 <thead>
+                  <!-- Row A: disambiguated player names -->
                   <tr>
                     <th class="border-2 border-gray-700 bg-gray-100 text-left px-3 py-3 text-sm font-bold">Pairing</th>
                     <template x-for="(name, pi) in box.players" :key="pi">
                       <th class="border-2 border-gray-700 text-center px-2 py-3 font-bold text-sm leading-tight"
-                          x-text="name.replace(/^\*{1,3}\s*|\s*\*{1,3}$/g, '')"></th>
+                          x-text="boxDisplayName(box, pi)"></th>
+                    </template>
+                  </tr>
+                  <!-- Row B: player numbers (1–N) — top padding acts as visual gap -->
+                  <tr>
+                    <td class="border-2 border-gray-700 px-3 pt-3 pb-1 text-xs text-gray-400"></td>
+                    <template x-for="(name, pi) in box.players" :key="pi">
+                      <td class="border-2 border-gray-700 text-center pt-3 pb-1 font-bold text-sm"
+                          x-text="pi + 1"></td>
                     </template>
                   </tr>
                 </thead>
@@ -351,7 +360,7 @@
                   <template x-for="(match, mi) in box.matches" :key="mi">
                     <tr>
                       <td class="border-2 border-gray-700 px-3 py-5 font-bold text-sm leading-tight"
-                          x-text="(match.pair1.map(i=>firstName(box.players[i])).join(' & ') + '  v  ' + match.pair2.map(i=>firstName(box.players[i])).join(' & '))"></td>
+                          x-text="(match.pair1.map(i=>i+1).join(' & ') + '  v  ' + match.pair2.map(i=>i+1).join(' & '))"></td>
                       <template x-for="(name, pi) in box.players" :key="pi">
                         <td :class="isSitout(bi, mi, pi) ? 'sitout-cell bg-gray-400' : ''"
                             class="border-2 border-gray-700 text-center py-5"></td>
