@@ -98,6 +98,10 @@ function appData() {
       return this.sessionDates[0] || null;
     },
 
+    get isStaging() {
+      return this.branch === 'staging';
+    },
+
     // ── Staging reset ──────────────────────────────────────────────────────
     async resetStagingData() {
       if (!confirm('Delete all session files from staging? The leaderboard will be kept.')) return;

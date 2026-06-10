@@ -135,7 +135,7 @@
     </div>
 
     <!-- Staging dev tools -->
-    <template x-if="branch === 'staging'">
+    <template x-if="isStaging">
       <div class="mb-3 no-print flex items-center gap-2 text-xs text-orange-500">
         <span class="px-1.5 py-0.5 bg-orange-100 rounded font-mono font-semibold">STAGING</span>
         <button @click="resetStagingData()" class="underline hover:text-orange-700">
