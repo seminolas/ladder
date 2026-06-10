@@ -90,7 +90,7 @@
 
     <!-- Session controls -->
     <div class="bg-white rounded-xl shadow p-4 mb-6 no-print" x-data="{ newDate: defaultSessionDate() }">
-      <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+      <div class="flex flex-col sm:flex-row gap-3 items-center">
 
         <!-- Open most recent session -->
         <template x-if="mostRecentSession">
@@ -109,9 +109,14 @@
                     class="text-sm bg-green-600 text-white rounded px-4 py-2 font-medium disabled:opacity-40 disabled:cursor-not-allowed">
               + New Session
             </button>
-            <template x-if="mostRecentSessionStatus && mostRecentSessionStatus !== 'closed'">
-              <p class="text-xs text-gray-400 mt-1">Close the current session first.</p>
-            </template>
+            <!-- Tooltip — only visible on hover when session is blocked -->
+            <div x-show="mostRecentSessionStatus && mostRecentSessionStatus !== 'closed'"
+                 class="absolute bottom-full left-1/2 mb-2 px-2 py-1.5 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10"
+                 style="transform: translateX(-50%)">
+              Close the current session first.
+              <div class="absolute top-full left-1/2 border-4 border-transparent border-t-gray-800"
+                   style="transform: translateX(-50%)"></div>
+            </div>
           </div>
         </div>
 
@@ -299,6 +304,15 @@
 
             <!-- Box score sheet — print only -->
             <div class="print-only mb-8">
+
+              <!-- Box header: circled number + label -->
+              <div class="flex items-center gap-3 mb-3">
+                <div class="flex items-center justify-center font-bold text-xl text-gray-800"
+                     style="width:2.4rem;height:2.4rem;border-radius:50%;border:2.5px solid #1f2937;"
+                     x-text="bi + 1"></div>
+                <span class="text-xl font-bold text-gray-800">Box <span x-text="bi + 1"></span></span>
+              </div>
+
               <table class="w-full border-collapse border-2 border-gray-700" style="table-layout:fixed">
                 <colgroup>
                   <col style="width:26%">
@@ -306,8 +320,7 @@
                 </colgroup>
                 <thead>
                   <tr>
-                    <th class="border-2 border-gray-700 bg-gray-100 text-left px-3 py-3 text-base font-bold"
-                        x-text="'Box ' + (bi + 1)"></th>
+                    <th class="border-2 border-gray-700 bg-gray-100 text-left px-3 py-3 text-sm font-bold">Pairing</th>
                     <template x-for="(name, pi) in box.players" :key="pi">
                       <th class="border-2 border-gray-700 text-center px-2 py-3 font-bold text-sm leading-tight"
                           x-text="name.replace(/^\*{1,3}\s*|\s*\*{1,3}$/g, '')"></th>
@@ -318,7 +331,7 @@
                   <!-- Match rows -->
                   <template x-for="(match, mi) in box.matches" :key="mi">
                     <tr>
-                      <td class="border-2 border-gray-700 px-3 py-5 font-semibold text-sm leading-tight"
+                      <td class="border-2 border-gray-700 px-3 py-5 font-bold text-sm leading-tight"
                           x-text="(match.pair1.map(i=>i+1).join(' & ') + '  v  ' + match.pair2.map(i=>i+1).join(' & '))"></td>
                       <template x-for="(name, pi) in box.players" :key="pi">
                         <td :class="isSitout(bi, mi, pi) ? 'sitout-cell bg-gray-400' : ''"
@@ -326,11 +339,11 @@
                       </template>
                     </tr>
                   </template>
-                  <!-- Stats rows -->
+                  <!-- Scoring section — thicker top border as visual divider -->
                   <tr>
-                    <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm">Matches Won</td>
+                    <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm" style="border-top:4px solid #1f2937">Matches Won</td>
                     <template x-for="p in box.players" :key="p">
-                      <td class="border-2 border-gray-700 py-4"></td>
+                      <td class="border-2 border-gray-700 py-4" style="border-top:4px solid #1f2937"></td>
                     </template>
                   </tr>
                   <tr>
@@ -345,10 +358,11 @@
                       <td class="border-2 border-gray-700 py-4"></td>
                     </template>
                   </tr>
+                  <!-- Final placing — another thick divider -->
                   <tr>
-                    <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm">Final Placing</td>
+                    <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm" style="border-top:4px solid #1f2937">Final Placing</td>
                     <template x-for="p in box.players" :key="p">
-                      <td class="border-2 border-gray-700 py-4"></td>
+                      <td class="border-2 border-gray-700 py-4" style="border-top:4px solid #1f2937"></td>
                     </template>
                   </tr>
                 </tbody>
