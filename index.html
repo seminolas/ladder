@@ -93,10 +93,16 @@
         <!-- Start new session -->
         <div class="flex gap-2 items-center flex-wrap">
           <input type="date" x-model="newDate" class="border rounded px-2 py-2 text-sm">
-          <button @click="startSession(newDate)"
-                  class="text-sm bg-green-600 text-white rounded px-4 py-2 font-medium">
-            + New Session
-          </button>
+          <div class="relative group">
+            <button @click="startSession(newDate)"
+                    :disabled="mostRecentSessionStatus && mostRecentSessionStatus !== 'closed'"
+                    class="text-sm bg-green-600 text-white rounded px-4 py-2 font-medium disabled:opacity-40 disabled:cursor-not-allowed">
+              + New Session
+            </button>
+            <template x-if="mostRecentSessionStatus && mostRecentSessionStatus !== 'closed'">
+              <p class="text-xs text-gray-400 mt-1">Close the current session first.</p>
+            </template>
+          </div>
         </div>
 
         <!-- Past sessions -->

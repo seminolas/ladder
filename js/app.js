@@ -17,6 +17,7 @@ function appData() {
 
     // Sessions list (array of date strings, newest first)
     sessionDates: [],
+    mostRecentSessionStatus: null,
 
     // Active session
     session: null,
@@ -73,6 +74,17 @@ function appData() {
           this.leaderboardSha = lb.sha;
         }
         this.sessionDates = await Storage.listSessions();
+        if (this.sessionDates.length > 0) {
+          const newest = this.sessionDates[0];
+          if (this.session?.date === newest) {
+            this.mostRecentSessionStatus = this.session.status;
+          } else {
+            const recent = await Storage.getSession(newest);
+            this.mostRecentSessionStatus = recent?.content?.status ?? null;
+          }
+        } else {
+          this.mostRecentSessionStatus = null;
+        }
       } catch (e) {
         this.error = e.message;
       } finally {
@@ -167,6 +179,7 @@ function appData() {
         }
         this.session = result.content;
         this.sessionSha = result.sha;
+        this.mostRecentSessionStatus = result.content.status;
         this.sessionTab = 1;
         this.view = 'session';
 
@@ -380,6 +393,7 @@ function appData() {
         await this.saveSession();
         this.leaderboardSha = await Storage.saveLeaderboard(newLeaderboard, this.leaderboardSha);
         this.leaderboard = newLeaderboard;
+        this.mostRecentSessionStatus = 'closed';
         this.sessionTab = 3;
         this.showToast('Session closed. Leaderboard updated.');
       } catch (e) {
