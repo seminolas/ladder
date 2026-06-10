@@ -1,7 +1,10 @@
 {
   "date": "2026-06-16",
   "status": "attendance",
-  "attendees": [],
+  "attendees": [
+    "Rory Weston",
+    "Aashay Shah"
+  ],
   "boxes": [],
   "leaderboardBefore": [
     "Rory Weston",
