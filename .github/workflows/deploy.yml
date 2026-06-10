@@ -1,0 +1,55 @@
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main, staging]
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+          path: _main
+
+      - name: Checkout staging
+        uses: actions/checkout@v4
+        with:
+          ref: staging
+          path: _staging
+        continue-on-error: true  # staging branch may not exist yet
+
+      - name: Assemble site
+        run: |
+          cp -r _main/. dist/
+          rm -rf dist/.git
+          echo '{ "branch": "main" }' > dist/config.json
+          if [ -d _staging ]; then
+            mkdir -p dist/staging
+            cp -r _staging/. dist/staging/
+            rm -rf dist/staging/.git
+            echo '{ "branch": "staging" }' > dist/staging/config.json
+          fi
+
+      - uses: actions/configure-pages@v4
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+      - uses: actions/deploy-pages@v4
+        id: deployment

@@ -1,0 +1,491 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Badminton Club</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { colors: { brand: '#1d4ed8' } } }
+    };
+  </script>
+  <style>
+    [x-cloak] { display: none !important; }
+
+    /* ── Print styles ───────────────────────────────────────── */
+    @media print {
+      body * { visibility: hidden; }
+      #print-area, #print-area * { visibility: visible; }
+      #print-area { position: absolute; inset: 0; }
+      .no-print { display: none !important; }
+      .print-page-break { page-break-after: always; }
+    }
+  </style>
+
+  <script src="js/csv.js"></script>
+  <script src="js/algorithm.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/app.js"></script>
+</head>
+<body class="bg-gray-50 min-h-screen font-sans text-gray-800" x-data="appData()" x-init="init()" x-cloak>
+
+  <!-- ── Toast ─────────────────────────────────────────────────────────── -->
+  <div x-show="toast" x-transition
+       :class="toast?.type === 'error' ? 'bg-red-600' : 'bg-green-600'"
+       class="fixed top-4 right-4 z-50 text-white px-4 py-2 rounded shadow-lg text-sm max-w-xs no-print">
+    <span x-text="toast?.msg"></span>
+  </div>
+
+  <!-- ── Loading overlay ───────────────────────────────────────────────── -->
+  <div x-show="loading" class="fixed inset-0 bg-white/60 z-40 flex items-center justify-center no-print">
+    <div class="text-brand text-lg font-medium animate-pulse">Loading…</div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- SETUP VIEW                                                          -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div x-show="view === 'setup'" class="flex items-center justify-center min-h-screen p-4">
+    <div class="bg-white rounded-xl shadow p-8 w-full max-w-md">
+      <h1 class="text-2xl font-bold text-brand mb-1">Badminton Club</h1>
+      <p class="text-sm text-gray-500 mb-6">Connect to your GitHub repository to get started.</p>
+
+      <label class="block text-sm font-medium mb-1">GitHub Username / Org</label>
+      <input x-model="cfg.owner" type="text" placeholder="your-username"
+             class="w-full border rounded px-3 py-2 mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+
+      <label class="block text-sm font-medium mb-1">Repository Name</label>
+      <input x-model="cfg.repo" type="text" placeholder="badminton-club"
+             class="w-full border rounded px-3 py-2 mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+
+      <label class="block text-sm font-medium mb-1">Personal Access Token (PAT)</label>
+      <input x-model="cfg.pat" type="password" placeholder="ghp_…"
+             class="w-full border rounded px-3 py-2 mb-1 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+      <p class="text-xs text-gray-400 mb-6">Needs <code>repo</code> scope. Stored in your browser only.</p>
+
+      <button @click="saveConfig()"
+              :disabled="!cfg.owner || !cfg.repo || !cfg.pat"
+              class="w-full bg-brand text-white rounded px-4 py-2 font-medium disabled:opacity-40">
+        Save & Continue
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- HOME VIEW                                                           -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div x-show="view === 'home'" class="max-w-2xl mx-auto px-4 py-6">
+
+    <!-- Header -->
+    <div class="flex items-center justify-between mb-6 no-print">
+      <h1 class="text-2xl font-bold text-brand">🏸 Badminton Club</h1>
+      <button @click="view = 'setup'" class="text-xs text-gray-400 hover:text-gray-600">⚙ Settings</button>
+    </div>
+
+    <!-- Session controls -->
+    <div class="bg-white rounded-xl shadow p-4 mb-6 no-print" x-data="{ newDate: defaultSessionDate() }">
+      <div class="flex flex-col sm:flex-row gap-3 items-start sm:items-end">
+
+        <!-- Open most recent session -->
+        <template x-if="mostRecentSession">
+          <button @click="openSession(mostRecentSession)"
+                  class="text-sm bg-brand text-white rounded px-4 py-2 font-medium whitespace-nowrap">
+            Open: <span x-text="formatDate(mostRecentSession)"></span>
+          </button>
+        </template>
+
+        <!-- Start new session -->
+        <div class="flex gap-2 items-center flex-wrap">
+          <input type="date" x-model="newDate" class="border rounded px-2 py-2 text-sm">
+          <button @click="startSession(newDate)"
+                  class="text-sm bg-green-600 text-white rounded px-4 py-2 font-medium">
+            + New Session
+          </button>
+        </div>
+
+        <!-- Past sessions -->
+        <template x-if="sessionDates.length > 1">
+          <select @change="openSession($event.target.value); $event.target.value = ''"
+                  class="border rounded px-2 py-2 text-sm text-gray-600">
+            <option value="">Past sessions…</option>
+            <template x-for="d in sessionDates.slice(1)" :key="d">
+              <option :value="d" x-text="formatDate(d)"></option>
+            </template>
+          </select>
+        </template>
+      </div>
+    </div>
+
+    <!-- Import CSV -->
+    <div class="mb-4 no-print">
+      <label class="inline-block text-sm text-gray-500 hover:text-brand cursor-pointer">
+        ⬆ Import leaderboard CSV
+        <input type="file" accept=".csv,.txt" @change="importCSV($event)" class="hidden">
+      </label>
+    </div>
+
+    <!-- Leaderboard -->
+    <div class="bg-white rounded-xl shadow overflow-hidden">
+      <div class="px-4 py-3 border-b flex items-center justify-between">
+        <h2 class="font-semibold">Current Leaderboard</h2>
+        <span class="text-xs text-gray-400" x-text="leaderboard.length + ' players'"></span>
+      </div>
+      <div class="divide-y max-h-[70vh] overflow-y-auto">
+        <template x-for="(name, i) in leaderboard" :key="name">
+          <div class="flex items-center px-4 py-2 text-sm hover:bg-gray-50">
+            <span class="w-8 text-gray-400 text-xs" x-text="i + 1"></span>
+            <span x-text="name"></span>
+          </div>
+        </template>
+        <template x-if="leaderboard.length === 0 && !loading">
+          <div class="px-4 py-8 text-center text-gray-400 text-sm">
+            No leaderboard data. Import a CSV or check your GitHub settings.
+          </div>
+        </template>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <!-- SESSION VIEW                                                        -->
+  <!-- ═══════════════════════════════════════════════════════════════════ -->
+  <div x-show="view === 'session' && session" class="max-w-3xl mx-auto px-4 py-4">
+
+    <!-- Session header -->
+    <div class="flex items-center gap-3 mb-4 no-print flex-wrap">
+      <button @click="view = 'home'; location.hash = '/'" class="text-gray-400 hover:text-gray-600">← Home</button>
+      <h2 class="font-bold text-lg text-brand" x-text="session ? formatDate(session.date) : ''"></h2>
+      <span class="text-xs px-2 py-0.5 rounded-full"
+            :class="{
+              'bg-yellow-100 text-yellow-700': session?.status === 'attendance',
+              'bg-blue-100 text-blue-700': session?.status === 'boxes_assigned',
+              'bg-orange-100 text-orange-700': session?.status === 'in_progress',
+              'bg-green-100 text-green-700': session?.status === 'closed',
+            }"
+            x-text="session?.status?.replace('_', ' ')"></span>
+
+      <!-- Close session button -->
+      <template x-if="session?.status === 'in_progress' && allScoresComplete">
+        <button @click="closeSession()" class="ml-auto text-sm bg-green-600 text-white rounded px-3 py-1">
+          Close Session
+        </button>
+      </template>
+    </div>
+
+    <!-- Tabs -->
+    <div class="flex border-b mb-4 no-print">
+      <template x-for="[label, num] in [['Attendance', 1], ['Boxes & Results', 2], ['Leaderboard', 3]]" :key="num">
+        <button @click="sessionTab = num"
+                :class="sessionTab === num
+                  ? 'border-b-2 border-brand text-brand font-medium'
+                  : 'text-gray-500 hover:text-gray-700'"
+                class="px-4 py-2 text-sm -mb-px" x-text="label">
+        </button>
+      </template>
+    </div>
+
+    <!-- ── Tab 1: Attendance ─────────────────────────────────────────── -->
+    <div x-show="sessionTab === 1">
+
+      <!-- CSV import in session -->
+      <template x-if="session?.status === 'attendance'">
+        <div class="mb-3 no-print">
+          <label class="inline-block text-xs text-gray-400 hover:text-brand cursor-pointer">
+            ⬆ Import new leaderboard CSV
+            <input type="file" accept=".csv,.txt" @change="importCSV($event)" class="hidden">
+          </label>
+        </div>
+      </template>
+
+      <!-- Search box -->
+      <div class="relative mb-3 no-print">
+        <input type="search" x-model="attendanceSearch" placeholder="Search players…"
+               class="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+               :disabled="session?.status === 'in_progress' || session?.status === 'closed'">
+        <span class="absolute right-3 top-2.5 text-gray-400 text-xs"
+              x-text="attendingCount + ' attending'"></span>
+      </div>
+
+      <!-- Player list -->
+      <div class="bg-white rounded-xl shadow divide-y mb-4">
+        <template x-for="p in filteredPlayers" :key="p.name">
+          <div @click="toggleAttendance(p.name)"
+               :class="isAttending(p.name) ? 'bg-green-50' : ''"
+               class="flex items-center px-4 py-3 text-sm cursor-pointer hover:bg-gray-50 select-none">
+            <span class="w-8 text-gray-400 text-xs" x-text="p.rank"></span>
+            <span class="flex-1" x-text="p.name"></span>
+            <span x-show="isAttending(p.name)" class="text-green-500 text-lg">✓</span>
+          </div>
+        </template>
+
+        <!-- No match → offer to add player -->
+        <template x-if="searchHasNoMatch && !showAddPlayer">
+          <div class="px-4 py-3">
+            <p class="text-sm text-gray-400 mb-2">No match for "<span x-text="attendanceSearch"></span>"</p>
+            <button @click="prepareAddPlayer()"
+                    class="text-sm text-brand font-medium">
+              + Add "<span x-text="attendanceSearch"></span>" as new player
+            </button>
+          </div>
+        </template>
+
+        <!-- Add player form -->
+        <template x-if="showAddPlayer">
+          <div class="px-4 py-3 bg-blue-50">
+            <p class="text-sm font-medium mb-2">Add new player</p>
+            <div class="flex gap-2 flex-wrap items-end">
+              <div>
+                <label class="text-xs text-gray-500">Name</label>
+                <input x-model="addPlayerName" type="text"
+                       class="block border rounded px-2 py-1.5 text-sm w-48 focus:ring-2 focus:ring-brand focus:outline-none">
+              </div>
+              <div>
+                <label class="text-xs text-gray-500">Insert at position</label>
+                <input x-model="addPlayerPos" type="number" :min="1" :max="leaderboard.length + 1"
+                       class="block border rounded px-2 py-1.5 text-sm w-20 focus:ring-2 focus:ring-brand focus:outline-none">
+              </div>
+              <button @click="confirmAddPlayer()"
+                      class="bg-brand text-white text-sm rounded px-3 py-1.5">Add & Mark Attending</button>
+              <button @click="showAddPlayer = false; attendanceSearch = ''"
+                      class="text-gray-400 text-sm px-2 py-1.5">Cancel</button>
+            </div>
+          </div>
+        </template>
+      </div>
+
+      <!-- Assign boxes button -->
+      <template x-if="session?.status === 'attendance' || session?.status === 'boxes_assigned'">
+        <div class="flex justify-end no-print">
+          <button @click="assignBoxes()"
+                  :disabled="attendingCount < 4"
+                  class="bg-brand text-white text-sm rounded px-5 py-2 disabled:opacity-40">
+            <span x-text="session?.status === 'boxes_assigned' ? 'Reassign Boxes' : 'Assign Boxes →'"></span>
+          </button>
+        </div>
+      </template>
+    </div>
+
+    <!-- ── Tab 2: Boxes & Results ─────────────────────────────────────── -->
+    <div x-show="sessionTab === 2">
+
+      <!-- Print all button -->
+      <div class="flex justify-between items-center mb-4 no-print">
+        <span class="text-sm text-gray-500"
+              x-text="session?.boxes?.length + ' box(es)'"></span>
+        <button @click="printBoxes()" class="text-sm text-brand font-medium">🖨 Print All Sheets</button>
+      </div>
+
+      <template x-if="!session?.boxes?.length">
+        <p class="text-center text-gray-400 py-10 text-sm">
+          Go to Attendance and assign boxes first.
+        </p>
+      </template>
+
+      <!-- ── PRINT AREA ─────────────────────────────────────────────── -->
+      <div id="print-area">
+        <template x-for="(box, bi) in (session?.boxes ?? [])" :key="bi">
+          <div :class="bi < (session?.boxes?.length - 1) ? 'print-page-break' : ''">
+
+            <!-- Box score sheet (matches PDF layout) -->
+            <div class="mb-6">
+              <table class="w-full border-collapse text-xs border border-gray-400 mb-1" style="table-layout:fixed">
+                <colgroup>
+                  <col style="width:28%">
+                  <template x-for="p in box.players" :key="p"><col></template>
+                </colgroup>
+                <thead>
+                  <tr>
+                    <th class="border border-gray-400 bg-gray-100 text-left px-2 py-2 text-sm font-bold"
+                        x-text="'Box ' + (bi + 1)"></th>
+                    <template x-for="(name, pi) in box.players" :key="pi">
+                      <th class="border border-gray-400 text-center px-1 py-2 font-semibold leading-tight"
+                          x-text="name.replace(/^\*{1,3}\s*|\s*\*{1,3}$/g, '')"></th>
+                    </template>
+                  </tr>
+                  <tr class="no-print">
+                    <td class="border border-gray-300 px-2 py-1 text-gray-500 italic text-xs">Match</td>
+                    <template x-for="(name, pi) in box.players" :key="pi">
+                      <td class="border border-gray-300 text-center text-gray-400 text-xs py-1"
+                          x-text="pi + 1"></td>
+                    </template>
+                  </tr>
+                </thead>
+                <tbody>
+                  <!-- Match rows -->
+                  <template x-for="(match, mi) in box.matches" :key="mi">
+                    <tr>
+                      <td class="border border-gray-400 px-2 py-2 font-medium text-xs leading-tight"
+                          x-text="(match.pair1.map(i=>i+1).join('&') + ' v ' + match.pair2.map(i=>i+1).join('&'))"></td>
+                      <template x-for="(name, pi) in box.players" :key="pi">
+                        <td :class="isSitout(bi, mi, pi) ? 'bg-gray-500' : ''"
+                            class="border border-gray-400 text-center py-3"></td>
+                      </template>
+                    </tr>
+                  </template>
+                  <!-- Stats rows -->
+                  <tr>
+                    <td class="border border-gray-400 px-2 py-2 font-semibold">Matches Won</td>
+                    <template x-for="p in box.players" :key="p">
+                      <td class="border border-gray-400 py-3"></td>
+                    </template>
+                  </tr>
+                  <tr>
+                    <td class="border border-gray-400 px-2 py-2 font-semibold leading-tight">Games<br>(Won − Lost)</td>
+                    <template x-for="p in box.players" :key="p">
+                      <td class="border border-gray-400 py-3"></td>
+                    </template>
+                  </tr>
+                  <tr>
+                    <td class="border border-gray-400 px-2 py-2 font-semibold leading-tight">Points<br>(For − Against)</td>
+                    <template x-for="p in box.players" :key="p">
+                      <td class="border border-gray-400 py-3"></td>
+                    </template>
+                  </tr>
+                  <tr>
+                    <td class="border border-gray-400 px-2 py-2 font-bold">Final Placing</td>
+                    <template x-for="p in box.players" :key="p">
+                      <td class="border border-gray-400 py-3"></td>
+                    </template>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Digital score entry (screen only) -->
+            <div class="no-print bg-white rounded-xl shadow p-4 mb-8">
+              <h3 class="font-semibold mb-3 text-sm"
+                  x-text="'Box ' + (bi + 1) + ' — Score Entry'"></h3>
+
+              <template x-for="(match, mi) in box.matches" :key="mi">
+                <div class="mb-4 pb-4 border-b last:border-b-0">
+                  <div class="text-sm font-medium mb-2 text-gray-700">
+                    Match <span x-text="mi + 1"></span>:
+                    <span x-text="pairLabel(box, match.pair1)"></span>
+                    <span class="text-gray-400"> vs </span>
+                    <span x-text="pairLabel(box, match.pair2)"></span>
+                  </div>
+
+                  <!-- Sets -->
+                  <div class="flex flex-wrap gap-3">
+                    <template x-for="setIdx in [0, 1, 2]" :key="setIdx">
+                      <div class="flex items-center gap-1"
+                           x-show="setIdx < 2 || (match.sets[0]?.length && match.sets[1]?.length)">
+                        <span class="text-xs text-gray-400 w-10">Set <span x-text="setIdx+1"></span></span>
+                        <input type="number" min="0" max="99"
+                               :value="match.sets[setIdx]?.[0] ?? ''"
+                               @change="setScore(bi, mi, setIdx, 0, $event.target.value); saveScores()"
+                               :disabled="session.status === 'closed'"
+                               class="w-14 border rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-brand focus:outline-none disabled:bg-gray-50">
+                        <span class="text-gray-400">–</span>
+                        <input type="number" min="0" max="99"
+                               :value="match.sets[setIdx]?.[1] ?? ''"
+                               @change="setScore(bi, mi, setIdx, 1, $event.target.value); saveScores()"
+                               :disabled="session.status === 'closed'"
+                               class="w-14 border rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-brand focus:outline-none disabled:bg-gray-50">
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+
+              <!-- Box standings (auto-computed) -->
+              <template x-if="box.matches.some(m => m.sets && m.sets.length > 0)">
+                <div class="mt-3">
+                  <p class="text-xs font-semibold text-gray-500 mb-2 uppercase tracking-wide">Standings</p>
+                  <div class="divide-y rounded border overflow-hidden">
+                    <template x-for="s in getBoxStandings(bi)" :key="s.name">
+                      <div class="flex items-center px-3 py-2 text-sm">
+                        <span class="w-6 font-bold text-gray-400 text-xs" x-text="s.placing + '.'"></span>
+                        <span class="flex-1" x-text="s.name"></span>
+                        <span class="text-xs text-gray-400"
+                              x-text="s.matchesWon + 'W  ' + (s.setsWon-s.setsLost < 0 ? '' : '+') + (s.setsWon-s.setsLost) + 'G  ' + (s.pointsFor-s.pointsAgainst < 0 ? '' : '+') + (s.pointsFor-s.pointsAgainst) + 'P'"></span>
+                      </div>
+                    </template>
+                  </div>
+                </div>
+              </template>
+            </div>
+
+          </div>
+        </template>
+      </div>
+
+      <!-- Close session -->
+      <div class="no-print mt-4 flex justify-end gap-3">
+        <template x-if="session?.status === 'in_progress' && allScoresComplete">
+          <button @click="closeSession()" class="bg-green-600 text-white text-sm rounded px-5 py-2">
+            Close Session & Update Leaderboard
+          </button>
+        </template>
+        <template x-if="session?.status === 'in_progress' && !allScoresComplete">
+          <p class="text-xs text-gray-400 self-center">Enter all scores to close the session.</p>
+        </template>
+      </div>
+    </div>
+
+    <!-- ── Tab 3: Updated Leaderboard ──────────────────────────────────── -->
+    <div x-show="sessionTab === 3">
+
+      <template x-if="session?.status !== 'closed'">
+        <p class="text-center text-gray-400 py-10 text-sm">
+          Close the session to see the updated leaderboard.
+        </p>
+      </template>
+
+      <template x-if="session?.status === 'closed' && session?.leaderboardAfter">
+        <div>
+          <!-- WhatsApp share -->
+          <div class="no-print flex flex-wrap gap-3 mb-4">
+            <button @click="shareOnWhatsApp()"
+                    class="bg-green-500 text-white text-sm rounded px-4 py-2 font-medium">
+              📱 Share on WhatsApp
+            </button>
+            <template x-if="canEditSession">
+              <button @click="enableEditing()"
+                      class="text-sm border border-gray-300 rounded px-4 py-2 text-gray-600 hover:bg-gray-50">
+                ✏ Edit Session
+              </button>
+            </template>
+          </div>
+
+          <!-- Updated leaderboard with deltas -->
+          <div class="bg-white rounded-xl shadow overflow-hidden">
+            <div class="px-4 py-3 border-b">
+              <h3 class="font-semibold">Updated Leaderboard</h3>
+            </div>
+            <div class="divide-y max-h-[65vh] overflow-y-auto">
+              <template x-for="(name, i) in session.leaderboardAfter" :key="name">
+                <div class="flex items-center px-4 py-2 text-sm"
+                     :class="session.attendees.includes(name) ? 'bg-white' : 'bg-gray-50 text-gray-400'">
+                  <span class="w-8 text-gray-400 text-xs" x-text="i + 1"></span>
+                  <span class="flex-1" x-text="name"></span>
+                  <span x-show="session.attendees.includes(name)"
+                        :class="deltaClass(name)"
+                        class="text-xs ml-2 w-8 text-right"
+                        x-text="deltaLabel(name)"></span>
+                </div>
+              </template>
+            </div>
+          </div>
+        </div>
+      </template>
+
+      <!-- Re-close controls when in edit mode -->
+      <template x-if="session?.status === 'in_progress'">
+        <div class="no-print flex gap-3 mt-6 justify-end">
+          <button @click="closeWithDiscard()"
+                  class="text-sm border border-gray-300 rounded px-4 py-2 text-gray-600">
+            Discard Changes
+          </button>
+          <button @click="closeSessionWithSave()" :disabled="!allScoresComplete"
+                  class="text-sm bg-green-600 text-white rounded px-4 py-2 disabled:opacity-40">
+            Save & Close
+          </button>
+        </div>
+      </template>
+    </div>
+
+  </div>
+
+</body>
+</html>
