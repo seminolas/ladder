@@ -1,13 +1,58 @@
 {
   "date": "2026-06-16",
-  "status": "attendance",
+  "status": "boxes_assigned",
   "attendees": [
     "Ray Lugsanay",
     "Rory Weston",
     "Shane Ringrose",
     "Eric Hehne"
   ],
-  "boxes": [],
+  "boxes": [
+    {
+      "players": [
+        "Rory Weston",
+        "Ray Lugsanay",
+        "Shane Ringrose",
+        "Eric Hehne"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    }
+  ],
   "leaderboardBefore": [
     "Rory Weston",
     "*** Shivam ***",
