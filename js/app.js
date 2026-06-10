@@ -360,8 +360,8 @@ function appData() {
       const newLeaderboard = [...this.leaderboard];
       newLeaderboard.splice(insertIdx, 0, name);
 
-      // Update session's leaderboardBefore if session is in attendance phase
-      if (this.session && this.session.status === 'attendance') {
+      // Update session's leaderboardBefore for pre-game phases
+      if (this.session && this.session.status !== 'in_progress' && this.session.status !== 'closed') {
         this.session.leaderboardBefore.splice(insertIdx, 0, name);
       }
 
@@ -410,6 +410,12 @@ function appData() {
     // Returns label like "Rory & Shivam"
     pairLabel(box, pairIndices) {
       return pairIndices.map(i => box.players[i].split(' ')[0]).join(' & ');
+    },
+
+    // First alphabetic word from a player name, stripping leading/trailing stars
+    firstName(name) {
+      const clean = name.replace(/^\*+\s*|\s*\*+$/g, '');
+      return clean.match(/[a-zA-ZÀ-ÖØ-öø-ÿ]+/)?.[0] ?? clean.trim();
     },
 
     isSitout(boxIndex, matchIndex, playerIndex) {

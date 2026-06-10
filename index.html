@@ -351,7 +351,7 @@
                   <template x-for="(match, mi) in box.matches" :key="mi">
                     <tr>
                       <td class="border-2 border-gray-700 px-3 py-5 font-bold text-sm leading-tight"
-                          x-text="(match.pair1.map(i=>i+1).join(' & ') + '  v  ' + match.pair2.map(i=>i+1).join(' & '))"></td>
+                          x-text="(match.pair1.map(i=>firstName(box.players[i])).join(' & ') + '  v  ' + match.pair2.map(i=>firstName(box.players[i])).join(' & '))"></td>
                       <template x-for="(name, pi) in box.players" :key="pi">
                         <td :class="isSitout(bi, mi, pi) ? 'sitout-cell bg-gray-400' : ''"
                             class="border-2 border-gray-700 text-center py-5"></td>
@@ -372,7 +372,7 @@
                 </colgroup>
                 <tbody>
                   <tr>
-                    <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm">Matches Won</td>
+                    <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm leading-tight">Matches Won<br>&nbsp;</td>
                     <template x-for="p in box.players" :key="p">
                       <td class="border-2 border-gray-700 py-4"></td>
                     </template>
