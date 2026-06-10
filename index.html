@@ -4,12 +4,7 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Badminton Club</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script>
-    tailwind.config = {
-      theme: { extend: { colors: { brand: '#1d4ed8' } } }
-    };
-  </script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css">
   <style>
     [x-cloak] { display: none !important; }
 
@@ -27,6 +22,7 @@
   <script src="js/algorithm.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/app.js"></script>
+  <script defer src="https://cdn.jsdelivr.net/npm/alpinejs@3.14.1/dist/cdn.min.js"></script>
 </head>
 <body class="bg-gray-50 min-h-screen font-sans text-gray-800" x-data="appData()" x-init="init()" x-cloak>
 
@@ -39,7 +35,7 @@
 
   <!-- ── Loading overlay ───────────────────────────────────────────────── -->
   <div x-show="loading" class="fixed inset-0 bg-white/60 z-40 flex items-center justify-center no-print">
-    <div class="text-brand text-lg font-medium animate-pulse">Loading…</div>
+    <div class="text-blue-700 text-lg font-medium animate-pulse">Loading…</div>
   </div>
 
   <!-- ═══════════════════════════════════════════════════════════════════ -->
@@ -47,25 +43,25 @@
   <!-- ═══════════════════════════════════════════════════════════════════ -->
   <div x-show="view === 'setup'" class="flex items-center justify-center min-h-screen p-4">
     <div class="bg-white rounded-xl shadow p-8 w-full max-w-md">
-      <h1 class="text-2xl font-bold text-brand mb-1">Badminton Club</h1>
+      <h1 class="text-2xl font-bold text-blue-700 mb-1">Badminton Club</h1>
       <p class="text-sm text-gray-500 mb-6">Connect to your GitHub repository to get started.</p>
 
       <label class="block text-sm font-medium mb-1">GitHub Username / Org</label>
       <input x-model="cfg.owner" type="text" placeholder="your-username"
-             class="w-full border rounded px-3 py-2 mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+             class="w-full border rounded px-3 py-2 mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700">
 
       <label class="block text-sm font-medium mb-1">Repository Name</label>
       <input x-model="cfg.repo" type="text" placeholder="badminton-club"
-             class="w-full border rounded px-3 py-2 mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+             class="w-full border rounded px-3 py-2 mb-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700">
 
       <label class="block text-sm font-medium mb-1">Personal Access Token (PAT)</label>
       <input x-model="cfg.pat" type="password" placeholder="ghp_…"
-             class="w-full border rounded px-3 py-2 mb-1 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
+             class="w-full border rounded px-3 py-2 mb-1 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700">
       <p class="text-xs text-gray-400 mb-6">Needs <code>repo</code> scope. Stored in your browser only.</p>
 
       <button @click="saveConfig()"
               :disabled="!cfg.owner || !cfg.repo || !cfg.pat"
-              class="w-full bg-brand text-white rounded px-4 py-2 font-medium disabled:opacity-40">
+              class="w-full bg-blue-700 text-white rounded px-4 py-2 font-medium disabled:opacity-40">
         Save & Continue
       </button>
     </div>
@@ -78,7 +74,7 @@
 
     <!-- Header -->
     <div class="flex items-center justify-between mb-6 no-print">
-      <h1 class="text-2xl font-bold text-brand">🏸 Badminton Club</h1>
+      <h1 class="text-2xl font-bold text-blue-700">🏸 Badminton Club</h1>
       <button @click="view = 'setup'" class="text-xs text-gray-400 hover:text-gray-600">⚙ Settings</button>
     </div>
 
@@ -89,7 +85,7 @@
         <!-- Open most recent session -->
         <template x-if="mostRecentSession">
           <button @click="openSession(mostRecentSession)"
-                  class="text-sm bg-brand text-white rounded px-4 py-2 font-medium whitespace-nowrap">
+                  class="text-sm bg-blue-700 text-white rounded px-4 py-2 font-medium whitespace-nowrap">
             Open: <span x-text="formatDate(mostRecentSession)"></span>
           </button>
         </template>
@@ -118,7 +114,7 @@
 
     <!-- Import CSV -->
     <div class="mb-4 no-print">
-      <label class="inline-block text-sm text-gray-500 hover:text-brand cursor-pointer">
+      <label class="inline-block text-sm text-gray-500 hover:text-blue-700 cursor-pointer">
         ⬆ Import leaderboard CSV
         <input type="file" accept=".csv,.txt" @change="importCSV($event)" class="hidden">
       </label>
@@ -154,7 +150,7 @@
     <!-- Session header -->
     <div class="flex items-center gap-3 mb-4 no-print flex-wrap">
       <button @click="view = 'home'; location.hash = '/'" class="text-gray-400 hover:text-gray-600">← Home</button>
-      <h2 class="font-bold text-lg text-brand" x-text="session ? formatDate(session.date) : ''"></h2>
+      <h2 class="font-bold text-lg text-blue-700" x-text="session ? formatDate(session.date) : ''"></h2>
       <span class="text-xs px-2 py-0.5 rounded-full"
             :class="{
               'bg-yellow-100 text-yellow-700': session?.status === 'attendance',
@@ -177,7 +173,7 @@
       <template x-for="[label, num] in [['Attendance', 1], ['Boxes & Results', 2], ['Leaderboard', 3]]" :key="num">
         <button @click="sessionTab = num"
                 :class="sessionTab === num
-                  ? 'border-b-2 border-brand text-brand font-medium'
+                  ? 'border-b-2 border-blue-700 text-blue-700 font-medium'
                   : 'text-gray-500 hover:text-gray-700'"
                 class="px-4 py-2 text-sm -mb-px" x-text="label">
         </button>
@@ -190,7 +186,7 @@
       <!-- CSV import in session -->
       <template x-if="session?.status === 'attendance'">
         <div class="mb-3 no-print">
-          <label class="inline-block text-xs text-gray-400 hover:text-brand cursor-pointer">
+          <label class="inline-block text-xs text-gray-400 hover:text-blue-700 cursor-pointer">
             ⬆ Import new leaderboard CSV
             <input type="file" accept=".csv,.txt" @change="importCSV($event)" class="hidden">
           </label>
@@ -200,7 +196,7 @@
       <!-- Search box -->
       <div class="relative mb-3 no-print">
         <input type="search" x-model="attendanceSearch" placeholder="Search players…"
-               class="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand"
+               class="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700"
                :disabled="session?.status === 'in_progress' || session?.status === 'closed'">
         <span class="absolute right-3 top-2.5 text-gray-400 text-xs"
               x-text="attendingCount + ' attending'"></span>
@@ -223,7 +219,7 @@
           <div class="px-4 py-3">
             <p class="text-sm text-gray-400 mb-2">No match for "<span x-text="attendanceSearch"></span>"</p>
             <button @click="prepareAddPlayer()"
-                    class="text-sm text-brand font-medium">
+                    class="text-sm text-blue-700 font-medium">
               + Add "<span x-text="attendanceSearch"></span>" as new player
             </button>
           </div>
@@ -237,15 +233,15 @@
               <div>
                 <label class="text-xs text-gray-500">Name</label>
                 <input x-model="addPlayerName" type="text"
-                       class="block border rounded px-2 py-1.5 text-sm w-48 focus:ring-2 focus:ring-brand focus:outline-none">
+                       class="block border rounded px-2 py-1.5 text-sm w-48 focus:ring-2 focus:ring-blue-700 focus:outline-none">
               </div>
               <div>
                 <label class="text-xs text-gray-500">Insert at position</label>
                 <input x-model="addPlayerPos" type="number" :min="1" :max="leaderboard.length + 1"
-                       class="block border rounded px-2 py-1.5 text-sm w-20 focus:ring-2 focus:ring-brand focus:outline-none">
+                       class="block border rounded px-2 py-1.5 text-sm w-20 focus:ring-2 focus:ring-blue-700 focus:outline-none">
               </div>
               <button @click="confirmAddPlayer()"
-                      class="bg-brand text-white text-sm rounded px-3 py-1.5">Add & Mark Attending</button>
+                      class="bg-blue-700 text-white text-sm rounded px-3 py-1.5">Add & Mark Attending</button>
               <button @click="showAddPlayer = false; attendanceSearch = ''"
                       class="text-gray-400 text-sm px-2 py-1.5">Cancel</button>
             </div>
@@ -258,7 +254,7 @@
         <div class="flex justify-end no-print">
           <button @click="assignBoxes()"
                   :disabled="attendingCount < 4"
-                  class="bg-brand text-white text-sm rounded px-5 py-2 disabled:opacity-40">
+                  class="bg-blue-700 text-white text-sm rounded px-5 py-2 disabled:opacity-40">
             <span x-text="session?.status === 'boxes_assigned' ? 'Reassign Boxes' : 'Assign Boxes →'"></span>
           </button>
         </div>
@@ -272,7 +268,7 @@
       <div class="flex justify-between items-center mb-4 no-print">
         <span class="text-sm text-gray-500"
               x-text="session?.boxes?.length + ' box(es)'"></span>
-        <button @click="printBoxes()" class="text-sm text-brand font-medium">🖨 Print All Sheets</button>
+        <button @click="printBoxes()" class="text-sm text-blue-700 font-medium">🖨 Print All Sheets</button>
       </div>
 
       <template x-if="!session?.boxes?.length">
@@ -375,13 +371,13 @@
                                :value="match.sets[setIdx]?.[0] ?? ''"
                                @change="setScore(bi, mi, setIdx, 0, $event.target.value); saveScores()"
                                :disabled="session.status === 'closed'"
-                               class="w-14 border rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-brand focus:outline-none disabled:bg-gray-50">
+                               class="w-14 border rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none disabled:bg-gray-50">
                         <span class="text-gray-400">–</span>
                         <input type="number" min="0" max="99"
                                :value="match.sets[setIdx]?.[1] ?? ''"
                                @change="setScore(bi, mi, setIdx, 1, $event.target.value); saveScores()"
                                :disabled="session.status === 'closed'"
-                               class="w-14 border rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-brand focus:outline-none disabled:bg-gray-50">
+                               class="w-14 border rounded px-2 py-1 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none disabled:bg-gray-50">
                       </div>
                     </template>
                   </div>
