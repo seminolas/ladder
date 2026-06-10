@@ -27,6 +27,7 @@ function appData() {
     addPlayerName: '',
     addPlayerPos: null,
     showAddPlayer: false,
+    _saveTimer: null,
 
     // ── Init ───────────────────────────────────────────────────────────────
     async init() {
@@ -190,6 +191,14 @@ function appData() {
       }
     },
 
+    // Debounced save — batches rapid UI changes into one write.
+    // Use this for attendance toggles and score entry; use saveSession() directly
+    // for intentional actions (assign boxes, close session, etc).
+    scheduleSave() {
+      clearTimeout(this._saveTimer);
+      this._saveTimer = setTimeout(() => this.saveSession(), 800);
+    },
+
     // ── Attendance ─────────────────────────────────────────────────────────
     get attendanceLeaderboard() {
       // In edit mode show leaderboardBefore, otherwise current leaderboard
@@ -239,7 +248,7 @@ function appData() {
         this.session.status = 'attendance';
       }
 
-      await this.saveSession();
+      this.scheduleSave();
     },
 
     get attendingCount() {
@@ -343,8 +352,8 @@ function appData() {
       }
     },
 
-    async saveScores() {
-      await this.saveSession();
+    saveScores() {
+      this.scheduleSave();
     },
 
     getBoxStandings(boxIdx) {
