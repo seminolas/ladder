@@ -106,7 +106,8 @@
           <div class="relative group">
             <button @click="startSession(newDate)"
                     :disabled="mostRecentSessionStatus && mostRecentSessionStatus !== 'closed'"
-                    class="text-sm bg-green-600 text-white rounded px-4 py-2 font-medium disabled:opacity-40 disabled:cursor-not-allowed">
+                    :class="(mostRecentSessionStatus && mostRecentSessionStatus !== 'closed') ? 'opacity-40 cursor-not-allowed' : ''"
+                    class="text-sm bg-green-600 text-white rounded px-4 py-2 font-medium">
               + New Session
             </button>
             <!-- Tooltip — only visible on hover when session is blocked -->
@@ -313,6 +314,7 @@
                 <span class="text-xl font-bold text-gray-800">Box <span x-text="bi + 1"></span></span>
               </div>
 
+              <!-- Table 1: Match results -->
               <table class="w-full border-collapse border-2 border-gray-700" style="table-layout:fixed">
                 <colgroup>
                   <col style="width:26%">
@@ -328,7 +330,6 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <!-- Match rows -->
                   <template x-for="(match, mi) in box.matches" :key="mi">
                     <tr>
                       <td class="border-2 border-gray-700 px-3 py-5 font-bold text-sm leading-tight"
@@ -339,11 +340,23 @@
                       </template>
                     </tr>
                   </template>
-                  <!-- Scoring section — thicker top border as visual divider -->
+                </tbody>
+              </table>
+
+              <!-- Whitespace between sections -->
+              <div style="height:14px"></div>
+
+              <!-- Table 2: Scoring -->
+              <table class="w-full border-collapse border-2 border-gray-700" style="table-layout:fixed">
+                <colgroup>
+                  <col style="width:26%">
+                  <template x-for="p in box.players" :key="p"><col></template>
+                </colgroup>
+                <tbody>
                   <tr>
-                    <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm" style="border-top:4px solid #1f2937">Matches Won</td>
+                    <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm">Matches Won</td>
                     <template x-for="p in box.players" :key="p">
-                      <td class="border-2 border-gray-700 py-4" style="border-top:4px solid #1f2937"></td>
+                      <td class="border-2 border-gray-700 py-4"></td>
                     </template>
                   </tr>
                   <tr>
@@ -358,11 +371,23 @@
                       <td class="border-2 border-gray-700 py-4"></td>
                     </template>
                   </tr>
-                  <!-- Final placing — another thick divider -->
+                </tbody>
+              </table>
+
+              <!-- Whitespace -->
+              <div style="height:14px"></div>
+
+              <!-- Table 3: Final Placing -->
+              <table class="w-full border-collapse border-2 border-gray-700" style="table-layout:fixed">
+                <colgroup>
+                  <col style="width:26%">
+                  <template x-for="p in box.players" :key="p"><col></template>
+                </colgroup>
+                <tbody>
                   <tr>
-                    <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm" style="border-top:4px solid #1f2937">Final Placing</td>
+                    <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm">Final Placing</td>
                     <template x-for="p in box.players" :key="p">
-                      <td class="border-2 border-gray-700 py-4" style="border-top:4px solid #1f2937"></td>
+                      <td class="border-2 border-gray-700 py-4"></td>
                     </template>
                   </tr>
                 </tbody>
@@ -377,48 +402,40 @@
               <template x-for="(match, mi) in box.matches" :key="mi">
                 <div class="mb-5 pb-5 border-b last:border-b-0">
                   <p class="text-xs text-gray-400 font-medium mb-2">Match <span x-text="mi+1"></span></p>
-                  <div class="flex items-start gap-2">
 
-                    <!-- Pair 1 (right-aligned) -->
-                    <div class="flex-1 text-right">
-                      <p class="text-sm font-semibold text-gray-800 mb-2" x-text="pairLabel(box, match.pair1)"></p>
-                      <div class="flex justify-end gap-2">
-                        <template x-for="setIdx in [0, 1, 2]" :key="setIdx">
-                          <div class="text-center"
-                               x-show="setIdx < 2 || (match.sets[0]?.length && match.sets[1]?.length)">
-                            <p class="text-xs text-gray-400 mb-1">S<span x-text="setIdx+1"></span></p>
-                            <input type="number" min="0" max="99"
-                                   :value="match.sets[setIdx]?.[0] ?? ''"
-                                   @change="setScore(bi, mi, setIdx, 0, $event.target.value); saveScores()"
-                                   :disabled="session.status === 'closed'"
-                                   class="w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none disabled:bg-gray-50">
-                          </div>
-                        </template>
-                      </div>
-                    </div>
-
-                    <!-- vs -->
-                    <div class="flex-shrink-0 pt-8 text-gray-400 font-semibold text-sm px-1">vs</div>
-
-                    <!-- Pair 2 (left-aligned) -->
-                    <div class="flex-1">
-                      <p class="text-sm font-semibold text-gray-800 mb-2" x-text="pairLabel(box, match.pair2)"></p>
-                      <div class="flex justify-start gap-2">
-                        <template x-for="setIdx in [0, 1, 2]" :key="setIdx">
-                          <div class="text-center"
-                               x-show="setIdx < 2 || (match.sets[0]?.length && match.sets[1]?.length)">
-                            <p class="text-xs text-gray-400 mb-1">S<span x-text="setIdx+1"></span></p>
-                            <input type="number" min="0" max="99"
-                                   :value="match.sets[setIdx]?.[1] ?? ''"
-                                   @change="setScore(bi, mi, setIdx, 1, $event.target.value); saveScores()"
-                                   :disabled="session.status === 'closed'"
-                                   class="w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none disabled:bg-gray-50">
-                          </div>
-                        </template>
-                      </div>
-                    </div>
-
+                  <!-- Pair names + vs on one line -->
+                  <div class="flex items-baseline mb-2 gap-1">
+                    <span class="w-16 shrink-0"></span>
+                    <span class="flex-1 text-right font-semibold text-sm text-gray-800 pr-2"
+                          x-text="pairLabel(box, match.pair1)"></span>
+                    <span class="shrink-0 text-gray-400 text-xs font-medium">vs</span>
+                    <span class="flex-1 font-semibold text-sm text-gray-800 pl-2"
+                          x-text="pairLabel(box, match.pair2)"></span>
                   </div>
+
+                  <!-- One row per set -->
+                  <template x-for="setIdx in [0, 1, 2]" :key="setIdx">
+                    <div class="flex items-center gap-1 mb-1.5"
+                         x-show="setIdx < 2 || (match.sets[0]?.length && match.sets[1]?.length)">
+                      <span class="w-16 shrink-0 text-xs text-gray-500">Set <span x-text="setIdx + 1"></span></span>
+                      <div class="flex-1 flex justify-end pr-2">
+                        <input type="number" min="0" max="99"
+                               :value="match.sets[setIdx]?.[0] ?? ''"
+                               @change="setScore(bi, mi, setIdx, 0, $event.target.value); saveScores()"
+                               :disabled="session.status === 'closed'"
+                               class="w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none">
+                      </div>
+                      <span class="shrink-0 text-gray-300 text-xs w-4 text-center">–</span>
+                      <div class="flex-1 pl-2">
+                        <input type="number" min="0" max="99"
+                               :value="match.sets[setIdx]?.[1] ?? ''"
+                               @change="setScore(bi, mi, setIdx, 1, $event.target.value); saveScores()"
+                               :disabled="session.status === 'closed'"
+                               class="w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none">
+                      </div>
+                    </div>
+                  </template>
+
                 </div>
               </template>
 
