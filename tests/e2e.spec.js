@@ -79,6 +79,7 @@ function ghApiDelete(path, sha, message) {
 }
 
 function resetStagingViaGhCli() {
+  // Delete all session files
   const raw   = execSync(
     `gh api "repos/seminolas/ladder/contents/data/sessions?ref=${STAGING_BRANCH}"`,
     { encoding: 'utf8' }
@@ -88,6 +89,15 @@ function resetStagingViaGhCli() {
     ghApiDelete(f.path, f.sha, `Test cleanup: delete ${f.name}`);
     console.log(`Deleted: ${f.name}`);
   }
+
+  // Remove any leftover test players from the leaderboard
+  const { content: lb, sha: lbSha } = ghApiJson('data/leaderboard.json');
+  const cleaned = lb.players.filter(p => p !== 'Test Player');
+  if (cleaned.length !== lb.players.length) {
+    ghApiWrite('data/leaderboard.json', { ...lb, players: cleaned }, lbSha, 'Test cleanup: remove Test Player from leaderboard');
+    console.log(`Removed ${lb.players.length - cleaned.length} Test Player(s) from leaderboard`);
+  }
+
   return files.length;
 }
 

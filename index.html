@@ -171,7 +171,7 @@
         <span class="text-xs text-gray-400" x-text="leaderboard.length + ' players'"></span>
       </div>
       <div class="divide-y max-h-[70vh] overflow-y-auto">
-        <template x-for="(name, i) in leaderboard" :key="name">
+        <template x-for="(name, i) in leaderboard" :key="i">
           <div class="flex items-center px-4 py-2 text-sm hover:bg-gray-50">
             <span class="w-8 text-gray-400 text-xs" x-text="i + 1"></span>
             <span x-text="name"></span>
@@ -261,7 +261,7 @@
 
       <!-- Player list -->
       <div class="bg-white rounded-xl shadow divide-y mb-4">
-        <template x-for="(p, pi) in filteredPlayers" :key="p.name">
+        <template x-for="(p, pi) in filteredPlayers" :key="pi">
           <div @click="toggleAttendance(p.name); clearSearch()"
                :class="{
                  'bg-green-50': isAttending(p.name),
@@ -551,7 +551,7 @@
               <h3 class="font-semibold">Updated Leaderboard</h3>
             </div>
             <div class="divide-y max-h-[65vh] overflow-y-auto">
-              <template x-for="(name, i) in session.leaderboardAfter" :key="name">
+              <template x-for="(name, i) in session.leaderboardAfter" :key="i">
                 <div class="flex items-center px-4 py-2 text-sm"
                      :class="session.attendees.includes(name) ? 'bg-white' : 'bg-gray-50 text-gray-400'">
                   <span class="w-8 text-gray-400 text-xs" x-text="i + 1"></span>
