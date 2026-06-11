@@ -13,12 +13,14 @@
 
     /* ── Print styles ───────────────────────────────────────── */
     @media print {
-      @page { size: A4 landscape; margin: 1.5cm; }
+      @page { size: A4 landscape; margin: 1cm 1.5cm; }
       body * { visibility: hidden; }
       #print-area, #print-area * { visibility: visible; }
       #print-area { position: absolute; inset: 0; }
       .no-print { display: none !important; }
       .print-page-break { page-break-after: always; }
+      /* Scale each box sheet to guarantee it always fits — even with long names */
+      .print-only { zoom: 0.85; }
       /* Force background colours (grey sit-out cells) */
       .sitout-cell {
         background-color: #6b7280 !important;
@@ -350,23 +352,23 @@
                           x-text="boxDisplayName(box, pi)"></th>
                     </template>
                   </tr>
-                  <!-- Row B: player numbers (1–N) — top padding acts as visual gap -->
+                  <!-- Row B: player numbers (1–N) — no borders so they float in the gap
+                       between the name header and the first match row -->
                   <tr>
-                    <td class="border-2 border-gray-700 px-3 pt-3 pb-1 text-xs text-gray-400"></td>
+                    <td class="px-3 py-2 text-xs text-gray-400"></td>
                     <template x-for="(name, pi) in box.players" :key="pi">
-                      <td class="border-2 border-gray-700 text-center pt-3 pb-1 font-bold text-sm"
-                          x-text="pi + 1"></td>
+                      <td class="text-center py-2 font-bold text-sm" x-text="pi + 1"></td>
                     </template>
                   </tr>
                 </thead>
                 <tbody>
                   <template x-for="(match, mi) in box.matches" :key="mi">
                     <tr>
-                      <td class="border-2 border-gray-700 px-3 py-5 font-bold text-sm leading-tight"
+                      <td class="border-2 border-gray-700 px-3 py-4 font-bold text-sm leading-tight"
                           x-text="(match.pair1.map(i=>i+1).join(' & ') + '  v  ' + match.pair2.map(i=>i+1).join(' & '))"></td>
                       <template x-for="(name, pi) in box.players" :key="pi">
                         <td :class="isSitout(bi, mi, pi) ? 'sitout-cell bg-gray-400' : ''"
-                            class="border-2 border-gray-700 text-center py-5"></td>
+                            class="border-2 border-gray-700 text-center py-4"></td>
                       </template>
                     </tr>
                   </template>
