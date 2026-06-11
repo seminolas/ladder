@@ -163,6 +163,25 @@ function appData() {
       }
     },
 
+    // ── CSV Export ─────────────────────────────────────────────────────────
+    exportCSV() {
+      if (this.leaderboard.length === 0) {
+        this.showToast('No leaderboard data to export.', 'error');
+        return;
+      }
+      const date = nextTuesday();
+      const csv = generateLeaderboardCSV(this.leaderboard, date);
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `leaderboard-${date}.csv`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    },
+
     // ── Session management ─────────────────────────────────────────────────
     defaultSessionDate() {
       return nextTuesday();

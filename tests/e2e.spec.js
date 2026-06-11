@@ -11,7 +11,12 @@ const BASE_URL = 'https://seminolas.github.io/ladder/staging/';
 const STAGING_BRANCH = 'staging';
 const SESSION_DATE = '2026-06-16';
 
-// PAIRINGS_5 from algorithm.js (match order for box-of-5)
+// Pairings from algorithm.js
+const PAIRINGS_4 = [
+  { pair1: [0, 1], pair2: [2, 3] }, // M0
+  { pair1: [0, 2], pair2: [1, 3] }, // M1
+  { pair1: [0, 3], pair2: [1, 2] }, // M2
+];
 const PAIRINGS_5 = [
   { pair1: [0, 1], pair2: [2, 4] }, // M0: sitout=3
   { pair1: [2, 3], pair2: [1, 4] }, // M1: sitout=0
@@ -20,25 +25,26 @@ const PAIRINGS_5 = [
   { pair1: [1, 3], pair2: [0, 4] }, // M4: sitout=2
 ];
 
-// Box 1 players (indices): Rory(0), Shivam(1), Ray(2), Kenzie(3), Vilius(4)
-// Box 2 players (indices): Aiko(0), Jency(1), Stephen(2), Test Player(3), Amia(4)
-// Scores: [set1_p1, set1_p2], [set2_p1, set2_p2]
+// 9 players → box-of-4 (top 4 by rank) + box-of-5 (next 5 by rank)
+// Box 1 indices: P0(top)..P3 — pair1 wins all 3 matches → standings = seeding order
 const BOX1_SCORES = [
-  [[21, 15], [21, 18]], // M0 [0,1]v[2,4]: pair1 wins → Rory+Shivam
-  [[21, 17], [21, 14]], // M1 [2,3]v[1,4]: pair1 wins → Ray+Kenzie
-  [[19, 21], [16, 21]], // M2 [3,4]v[0,2]: pair2 wins → Rory+Ray
-  [[21, 18], [21, 15]], // M3 [0,3]v[1,2]: pair1 wins → Rory+Kenzie
-  [[19, 21], [17, 21]], // M4 [1,3]v[0,4]: pair2 wins → Rory+Vilius
+  [[21, 10], [21, 11]], // M0 [0,1]v[2,3]: pair1 wins
+  [[21, 15], [21, 17]], // M1 [0,2]v[1,3]: pair1 wins
+  [[21, 18], [21, 19]], // M2 [0,3]v[1,2]: pair1 wins
 ];
+// Box 2 (5 players, indices 0=vilius .. 4=TestPlayer)
+// Vilius(0) wins 4 matches (1st), Jency(2) and Stephen(3) each win 2 (2nd/3rd by points),
+// Aiko(1) wins 1 (4th), TestPlayer(4) wins 1 (5th)
 const BOX2_SCORES = [
-  [[21, 14], [21, 16]], // M0 [0,1]v[2,4]: pair1 wins → Aiko+Jency
-  [[21, 15], [21, 13]], // M1 [2,3]v[1,4]: pair1 wins → Stephen+TestPlayer (Aiko sits)
-  [[12, 21], [15, 21]], // M2 [3,4]v[0,2]: pair2 wins → Aiko+Stephen
-  [[21, 17], [21, 14]], // M3 [0,3]v[1,2]: pair1 wins → Aiko+TestPlayer
-  [[18, 21], [16, 21]], // M4 [1,3]v[0,4]: pair2 wins → Aiko+Amia
+  [[21, 14], [21, 16]], // M0 [0,1]v[2,4]: pair1 wins → Vilius+Aiko
+  [[21, 15], [21, 13]], // M1 [2,3]v[1,4]: pair1 wins → Jency+Stephen (Vilius sits)
+  [[12, 21], [15, 21]], // M2 [3,4]v[0,2]: pair2 wins → Vilius+Jency
+  [[21, 17], [21, 14]], // M3 [0,3]v[1,2]: pair1 wins → Vilius+Stephen
+  [[18, 21], [16, 21]], // M4 [1,3]v[0,4]: pair2 wins → Vilius+TestPlayer
 ];
 
-const SEARCH_TERMS = ['rory', 'shivam', 'ray', 'kenzie', 'vilius', 'aiko', 'jency', 'stephen', 'amia'];
+// 8 real players from leaderboard; Test Player added as new (not in leaderboard)
+const SEARCH_TERMS = ['rory', 'shivam', 'ray', 'kenzie', 'vilius', 'aiko', 'jency', 'stephen'];
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
@@ -99,23 +105,21 @@ function buildMatchSets(scores) {
   return scores.map(s => s); // [[s1p1, s1p2], [s2p1, s2p2]]
 }
 
-function buildBoxMatches(playerCount, scores) {
-  return PAIRINGS_5.map((pairing, mi) => ({
+function buildBoxMatches(pairings, scores) {
+  return pairings.map((pairing, mi) => ({
     pair1: pairing.pair1,
     pair2: pairing.pair2,
-    sets: scores[mi].map(set => set), // [[p1score, p2score], ...]
+    sets: scores[mi].map(set => set),
   }));
 }
 
-// Compute wins/games/points for a 5-player box
-function computeStandings(players, scores) {
+// Compute wins/games/points for a box of any size (4 or 5).
+function computeStandings(players, pairings, scores) {
   const stats = players.map(() => ({ wins: 0, gamesWon: 0, pointsFor: 0, pointsAgainst: 0 }));
-  const SITOUT_5 = [3, 0, 1, 4, 2];
 
-  PAIRINGS_5.forEach((pairing, mi) => {
-    const matchSets = scores[mi]; // [[s1p1, s1p2], [s2p1, s2p2]]
-    const pair1 = pairing.pair1;
-    const pair2 = pairing.pair2;
+  pairings.forEach((pairing, mi) => {
+    const matchSets = scores[mi];
+    const { pair1, pair2 } = pairing;
     let p1games = 0, p2games = 0;
     matchSets.forEach(([s1, s2]) => {
       if (s1 > s2) p1games++;
@@ -130,7 +134,6 @@ function computeStandings(players, scores) {
     pair2.forEach(i => stats[i].gamesWon += p2games);
   });
 
-  // Sort: wins desc, gamesWon desc, pointDiff desc
   const indexed = players.map((name, i) => ({ name, ...stats[i], pointDiff: stats[i].pointsFor - stats[i].pointsAgainst }));
   indexed.sort((a, b) => b.wins - a.wins || b.gamesWon - a.gamesWon || b.pointDiff - a.pointDiff);
   return indexed;
@@ -146,12 +149,16 @@ async function gotoApp(page) {
   await page.waitForTimeout(2000);
 }
 
+// Use local date parts (not toISOString) to avoid UTC offset shifting the date
 function nextTuesday() {
   const d = new Date();
   const day = d.getDay();
-  const daysUntil = (2 - day + 7) % 7 || 7;
+  const daysUntil = day === 2 ? 0 : (2 - day + 7) % 7;
   d.setDate(d.getDate() + daysUntil);
-  return d.toISOString().split('T')[0];
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const dd = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${dd}`;
 }
 
 // ── Test ─────────────────────────────────────────────────────────────────────
@@ -200,50 +207,42 @@ test('full session flow', async ({ page }) => {
   const leaderboard = leaderboardData.players;
 
   // Determine player positions in the leaderboard
+  const { buildAttendeeOrder } = require('../js/algorithm');
   const findPlayer = (search) => leaderboard.find(p => p.toLowerCase().includes(search));
-  const players9 = SEARCH_TERMS.map(t => {
+  const realPlayers = SEARCH_TERMS.map(t => {
     const p = findPlayer(t);
     if (!p) throw new Error(`Player not found for search: ${t}`);
     return p;
   });
-  console.log('9 players:', players9.map(p => p.replace(/^\*+\s*|\s*\*+$/g, '').trim()));
+  console.log('Real players found:', realPlayers.map(p => p.replace(/^\*+\s*|\s*\*+$/g, '').trim()));
 
-  // Add Test Player at position 100 (0-indexed = 99)
+  // Test Player is a new member not yet in the leaderboard
   const testPlayerName = 'Test Player';
-  const allPlayers10 = [...players9, testPlayerName];
+  const allPlayers = [...realPlayers, testPlayerName];
 
-  // Sort attendees by leaderboard rank (leaderboard index)
+  // Sort attendees by leaderboard rank; Test Player goes after all ranked players
   const getRank = (name) => {
-    if (name === testPlayerName) return 99; // position 100
     const idx = leaderboard.findIndex(p => p === name);
     return idx >= 0 ? idx : 9999;
   };
-  const sortedAttendees = [...allPlayers10].sort((a, b) => getRank(a) - getRank(b));
+  const sortedAttendees = [...allPlayers].sort((a, b) => getRank(a) - getRank(b));
   console.log('Sorted attendees (by rank):', sortedAttendees.map(p => p.replace(/^\*+\s*|\s*\*+$/g, '').trim()));
 
-  // Build leaderboardBefore (sorted attendees order)
   const leaderboardBefore = sortedAttendees;
 
-  // Box assignment: 10 players → 2 boxes of 5
-  // App algorithm: boxes[0] = first 5 by rank, boxes[1] = next 5
-  const box1Players = leaderboardBefore.slice(0, 5);
-  const box2Players = leaderboardBefore.slice(5, 10);
-  console.log('Box 1:', box1Players.map(p => p.replace(/^\*+\s*|\s*\*+$/g, '').trim()));
-  console.log('Box 2:', box2Players.map(p => p.replace(/^\*+\s*|\s*\*+$/g, '').trim()));
+  // 9 players → assignBoxes gives 1×4 + 1×5 (box-of-4 first, then box-of-5)
+  const box1Players = leaderboardBefore.slice(0, 4);
+  const box2Players = leaderboardBefore.slice(4, 9);
+  console.log('Box 1 (4 players):', box1Players.map(p => p.replace(/^\*+\s*|\s*\*+$/g, '').trim()));
+  console.log('Box 2 (5 players):', box2Players.map(p => p.replace(/^\*+\s*|\s*\*+$/g, '').trim()));
 
-  // Build match data for each box
-  const box1Matches = PAIRINGS_5.map((p, mi) => ({
-    pair1: p.pair1, pair2: p.pair2,
-    sets: BOX1_SCORES[mi].map(set => [set[0], set[1]]),
-  }));
-  const box2Matches = PAIRINGS_5.map((p, mi) => ({
-    pair1: p.pair1, pair2: p.pair2,
-    sets: BOX2_SCORES[mi].map(set => [set[0], set[1]]),
-  }));
+  // Build match data
+  const box1Matches = buildBoxMatches(PAIRINGS_4, BOX1_SCORES);
+  const box2Matches = buildBoxMatches(PAIRINGS_5, BOX2_SCORES);
 
   // Compute standings
-  const box1Standings = computeStandings(box1Players, BOX1_SCORES);
-  const box2Standings = computeStandings(box2Players, BOX2_SCORES);
+  const box1Standings = computeStandings(box1Players, PAIRINGS_4, BOX1_SCORES);
+  const box2Standings = computeStandings(box2Players, PAIRINGS_5, BOX2_SCORES);
   console.log('Box 1 standings:', box1Standings.map(s => s.name.replace(/^\*+\s*|\s*\*+$/g, '').trim() + `(${s.wins}W)`));
   console.log('Box 2 standings:', box2Standings.map(s => s.name.replace(/^\*+\s*|\s*\*+$/g, '').trim() + `(${s.wins}W)`));
 
@@ -278,16 +277,14 @@ test('full session flow', async ({ page }) => {
   const urlAfter = page.url();
   console.log('Session URL:', urlAfter);
 
-  // ── 7. Verify all 10 players are attending ────────────────────────────────
-  // The attendance tab shows all 10 with checkmarks; "10 attending" badge visible
-  const attendingBadge = page.locator('text=/10 attending/i');
+  // ── 7. Verify all 9 players are attending ─────────────────────────────────
+  const attendingBadge = page.locator('text=/9 attending/i');
   await expect(attendingBadge).toBeVisible({ timeout: 10000 });
-  console.log('10 attending badge visible ✓');
+  console.log('9 attending badge visible ✓');
 
-  // Players appear as green rows in the attendance list — use .bg-green-50 class
   const greenRows = page.locator('.bg-green-50');
-  await expect(greenRows).toHaveCount(10, { timeout: 5000 });
-  console.log('10 green attendance rows ✓');
+  await expect(greenRows).toHaveCount(9, { timeout: 5000 });
+  console.log('9 green attendance rows ✓');
 
   // ── 8. Navigate to Boxes & Results tab and verify box headings ───────────
   // Alpine's x-show="loading" overlay never gets display:none (async init timing: loading
@@ -328,47 +325,31 @@ test('full session flow', async ({ page }) => {
   expect(firstVal).toBe('21');
 
   // ── 12. Close session via gh API + apply leaderboard ─────────────────────
-  // Compute new leaderboard after 2-up-2-down
-  // Order of winners: Box1[0,1] then Box2[0,1] go to top slots
-  // Box1 order: box1Standings[0..4], Box2 order: box2Standings[0..4]
+  // Use buildAttendeeOrder (same function the app uses) to compute new order
   const b1 = box1Standings.map(s => s.name);
   const b2 = box2Standings.map(s => s.name);
+  const newAttendeeOrder = buildAttendeeOrder([b1, b2]);
+  console.log('New attendee order:', newAttendeeOrder.map(n => n.replace(/^\*+\s*|\s*\*+$/g, '').trim()));
 
-  // 2-up-2-down: top slots get B1[0], B1[1], B2[0], B2[1]
-  // then neutral, then losers in reverse order
-  // Simplified: apply leaderboardUpdate using the same logic as the app
-  const newOrderNames = [b1[0], b1[1], b2[0], b2[1], b1[2], b2[2], b1[3], b2[3], b1[4], b2[4]];
-  console.log('New leaderboard order for attendees:', newOrderNames.map(n => n.replace(/^\*+\s*|\s*\*+$/g, '').trim()));
-
-  // Determine the slots these players occupied before (their positions in leaderboardBefore)
-  const slots = leaderboardBefore.map((_, i) => {
-    const lbIdx = leaderboard.findIndex(p => p === leaderboardBefore[i]);
-    return lbIdx >= 0 ? lbIdx : i;
-  }).sort((a, b) => a - b);
-  console.log('Slots being updated:', slots);
-
-  // Build new leaderboard
+  // Find the leaderboard slots occupied by real players (Test Player has none)
   const newLeaderboard = [...leaderboard];
-  // Remove Test Player (new player, was at position 99)
-  const testPlayerLeaderboardIdx = newLeaderboard.indexOf(testPlayerName);
-  if (testPlayerLeaderboardIdx >= 0) {
-    newLeaderboard.splice(testPlayerLeaderboardIdx, 1);
-  }
-
-  // Place attendees back into the slot positions in new order
-  // Remove all attending players from leaderboard first
-  const attendingInLb = players9.map(p => ({ p, idx: newLeaderboard.indexOf(p) })).filter(x => x.idx >= 0);
-  for (const { p } of attendingInLb) {
-    const idx = newLeaderboard.indexOf(p);
-    if (idx >= 0) newLeaderboard.splice(idx, 1);
-  }
-
-  // Get original slots for attending players (sorted)
+  const attendingInLb = realPlayers
+    .map(p => ({ p, idx: newLeaderboard.indexOf(p) }))
+    .filter(x => x.idx >= 0);
   const originalSlots = attendingInLb.map(x => x.idx).sort((a, b) => a - b);
-  // Insert new order at those slots
-  const newOrder9 = newOrderNames.filter(n => n !== testPlayerName);
-  for (let i = 0; i < newOrder9.length && i < originalSlots.length; i++) {
-    newLeaderboard.splice(originalSlots[i], 0, newOrder9[i]);
+  console.log('Slots being updated:', originalSlots);
+
+  // Remove real players from leaderboard, then insert in new order at their original slots
+  for (const { p } of attendingInLb) {
+    newLeaderboard.splice(newLeaderboard.indexOf(p), 1);
+  }
+  const realPlayersNewOrder = newAttendeeOrder.filter(n => n !== testPlayerName);
+  for (let i = 0; i < realPlayersNewOrder.length && i < originalSlots.length; i++) {
+    newLeaderboard.splice(originalSlots[i], 0, realPlayersNewOrder[i]);
+  }
+  // Test Player is new — push to end (mirrors app's applyLeaderboardUpdate behaviour)
+  if (newAttendeeOrder.includes(testPlayerName)) {
+    newLeaderboard.push(testPlayerName);
   }
 
   // Save closed session with leaderboardAfter

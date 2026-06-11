@@ -30,3 +30,23 @@ function parseLeaderboardCSV(text) {
   players.sort((a, b) => a.pos - b.pos);
   return players.map(p => p.name);
 }
+
+// Generate a leaderboard CSV that round-trips through parseLeaderboardCSV.
+// Matches the format of users.csv: header rows with title + date, then
+// numbered player rows with two trailing empty columns (Attend, Signature).
+const _MONTHS = ['January','February','March','April','May','June',
+                 'July','August','September','October','November','December'];
+const _DAYS = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+
+function generateLeaderboardCSV(players, isoDate) {
+  const d = new Date(isoDate + 'T00:00:00');
+  const dateStr = `${_DAYS[d.getDay()]}, ${_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`;
+  const lines = [
+    ',Box Doubles Draw,,',
+    `,"${dateStr}",Attend,Signature`,
+    ',,,',
+    ',,,',
+    ...players.map((name, i) => `${i + 1},${name},,`),
+  ];
+  return lines.join('\r\n');
+}
