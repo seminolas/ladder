@@ -1,6 +1,6 @@
 {
   "date": "2026-06-09",
-  "status": "attendance",
+  "status": "boxes_assigned",
   "attendees": [
     "Shane Ringrose",
     "Vilius Vaivada",
@@ -12,7 +12,119 @@
     "Eric Hehne",
     "Han Lin"
   ],
-  "boxes": [],
+  "boxes": [
+    {
+      "players": [
+        "Kenzie Peachey",
+        "Aashay Shah",
+        "Han Lin",
+        "Shane Ringrose"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    },
+    {
+      "players": [
+        "Aby George",
+        "Eric Hehne",
+        "Martin Hedlund",
+        "Marie Hemingway",
+        "Vilius Vaivada"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            2,
+            3
+          ],
+          "pair2": [
+            1,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            3,
+            4
+          ],
+          "pair2": [
+            0,
+            2
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            1,
+            3
+          ],
+          "pair2": [
+            0,
+            4
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    }
+  ],
   "leaderboardBefore": [
     "Rory Weston",
     "Kenzie Peachey",
