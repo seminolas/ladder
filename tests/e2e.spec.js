@@ -5,30 +5,6 @@ const fs = require('fs');
 
 const BASE_URL      = 'https://seminolas.github.io/ladder/staging/';
 const STAGING_BRANCH = 'staging';
-
-// Decrypted PAT — resolved once in beforeAll from config.json + GH_ADMIN_PASSWORD
-let GH_PAT = null;
-
-async function decryptPAT(encryptedBlob, password) {
-  const { salt, iv, ct } = JSON.parse(Buffer.from(encryptedBlob, 'base64').toString());
-  const enc = new TextEncoder();
-  const km  = await globalThis.crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
-  const key = await globalThis.crypto.subtle.deriveKey(
-    { name: 'PBKDF2', salt: new Uint8Array(salt), iterations: 100_000, hash: 'SHA-256' },
-    km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
-  );
-  const plain = await globalThis.crypto.subtle.decrypt(
-    { name: 'AES-GCM', iv: new Uint8Array(iv) }, key, new Uint8Array(ct)
-  );
-  return new TextDecoder().decode(plain);
-}
-
-test.beforeAll(async () => {
-  const cfg      = JSON.parse(fs.readFileSync('config.json', 'utf8'));
-  const password = process.env.GH_ADMIN_PASSWORD;
-  if (!password) throw new Error('GH_ADMIN_PASSWORD not set in .env');
-  GH_PAT = await decryptPAT(cfg.encryptedPAT, password);
-});
 const SESSION_DATE = '2026-06-16';
 
 // Pairings from algorithm.js
@@ -68,14 +44,10 @@ const SEARCH_TERMS = ['rory', 'shivam', 'ray', 'kenzie', 'vilius', 'aiko', 'jenc
 
 // ── Helpers ─────────────────────────────────────────────────────────────────
 
-function ghEnv() {
-  return { ...process.env, GH_TOKEN: GH_PAT };
-}
-
 function ghApiJson(path, branch = STAGING_BRANCH) {
   const raw  = execSync(
     `gh api "repos/seminolas/ladder/contents/${path}?ref=${branch}"`,
-    { encoding: 'utf8', env: ghEnv() }
+    { encoding: 'utf8' }
   );
   const meta = JSON.parse(raw);
   return { content: JSON.parse(Buffer.from(meta.content.replace(/\n/g, ''), 'base64').toString('utf8')), sha: meta.sha };
@@ -92,7 +64,7 @@ function ghApiWrite(path, content, sha, message) {
   try {
     return execSync(
       `gh api --method PUT "repos/seminolas/ladder/contents/${path}" --input "${tmpFile}"`,
-      { encoding: 'utf8', env: ghEnv() }
+      { encoding: 'utf8' }
     );
   } finally {
     try { fs.unlinkSync(tmpFile); } catch (_) {}
@@ -102,14 +74,14 @@ function ghApiWrite(path, content, sha, message) {
 function ghApiDelete(path, sha, message) {
   execSync(
     `gh api --method DELETE repos/seminolas/ladder/contents/${path} -f "message=${message}" -f "sha=${sha}" -f "branch=${STAGING_BRANCH}"`,
-    { encoding: 'utf8', env: ghEnv() }
+    { encoding: 'utf8' }
   );
 }
 
 function resetStagingViaGhCli() {
   const raw   = execSync(
     `gh api "repos/seminolas/ladder/contents/data/sessions?ref=${STAGING_BRANCH}"`,
-    { encoding: 'utf8', env: ghEnv() }
+    { encoding: 'utf8' }
   );
   const files = JSON.parse(raw).filter(f => f.name.endsWith('.json'));
   for (const f of files) {
@@ -196,7 +168,7 @@ test('full session flow', async ({ page }) => {
 
   // Reload to reflect clean state
   await page.goto(BASE_URL, { waitUntil: 'networkidle' });
-  await page.evaluate(cfg => localStorage.setItem('badminton_gh_config', JSON.stringify(cfg)), GH_CONFIG);
+  await page.evaluate(pwd => localStorage.setItem('badminton_admin_password', pwd), process.env.GH_ADMIN_PASSWORD);
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForTimeout(3000);
 
@@ -287,7 +259,7 @@ test('full session flow', async ({ page }) => {
 
   // ── 6. Navigate to the session ─────────────────────────────────────────────
   await page.goto(`${BASE_URL}#/session/${SESSION_DATE}`, { waitUntil: 'networkidle' });
-  await page.evaluate(cfg => localStorage.setItem('badminton_gh_config', JSON.stringify(cfg)), GH_CONFIG);
+  await page.evaluate(pwd => localStorage.setItem('badminton_admin_password', pwd), process.env.GH_ADMIN_PASSWORD);
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForTimeout(3000);
 
@@ -383,7 +355,7 @@ test('full session flow', async ({ page }) => {
 
   // ── 13. Verify leaderboard shows updated rankings ────────────────────────
   await page.goto(BASE_URL, { waitUntil: 'networkidle' });
-  await page.evaluate(cfg => localStorage.setItem('badminton_gh_config', JSON.stringify(cfg)), GH_CONFIG);
+  await page.evaluate(pwd => localStorage.setItem('badminton_admin_password', pwd), process.env.GH_ADMIN_PASSWORD);
   await page.reload({ waitUntil: 'networkidle' });
   await page.waitForTimeout(4000);
 
