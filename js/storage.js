@@ -1,74 +1,117 @@
 // GitHub API storage layer.
-// Reads leaderboard and sessions from a GitHub repo.
-// Writes require a Personal Access Token stored in localStorage.
-// The target branch is read from config.json served alongside the app —
-// injected at deploy time so main and staging automatically target their own branch.
+// Owner and repo are hardcoded — this app serves one club.
+// The target branch is read from config.json served alongside the app.
+// Admin writes require a PAT, which is stored encrypted in config.json
+// and decrypted in-memory after the user provides the admin password.
 
 const Storage = (() => {
-  const CONFIG_KEY = 'badminton_gh_config';
+  const OWNER = 'seminolas';
+  const REPO  = 'ladder';
+  const ADMIN_PASSWORD_KEY = 'badminton_admin_password';
 
-  // Branch is resolved once from config.json and cached
   let _branch = null;
+  let _encryptedPAT = null;
+  let _pat = null;         // decrypted PAT held in memory only
+
+  // ── Remote config (config.json) ──────────────────────────────────────────
+
+  async function getRemoteConfig() {
+    try {
+      const res = await fetch('config.json');
+      if (res.ok) return await res.json();
+    } catch {}
+    return {};
+  }
 
   async function getBranch() {
     if (_branch) return _branch;
-    try {
-      const res = await fetch('config.json');
-      if (res.ok) {
-        const cfg = await res.json();
-        _branch = cfg.branch || 'main';
-        return _branch;
-      }
-    } catch {}
-    _branch = 'main';
+    const cfg = await getRemoteConfig();
+    _branch = cfg.branch || 'main';
     return _branch;
   }
 
-  function getConfig() {
+  // ── Crypto helpers ────────────────────────────────────────────────────────
+
+  async function decryptPAT(encryptedBlob, password) {
+    const { salt, iv, ct } = JSON.parse(atob(encryptedBlob));
+    const enc = new TextEncoder();
+    const km  = await crypto.subtle.importKey('raw', enc.encode(password), 'PBKDF2', false, ['deriveKey']);
+    const key = await crypto.subtle.deriveKey(
+      { name: 'PBKDF2', salt: new Uint8Array(salt), iterations: 100_000, hash: 'SHA-256' },
+      km, { name: 'AES-GCM', length: 256 }, false, ['decrypt']
+    );
+    const plain = await crypto.subtle.decrypt({ name: 'AES-GCM', iv: new Uint8Array(iv) }, key, new Uint8Array(ct));
+    return new TextDecoder().decode(plain);
+  }
+
+  // ── Auth ──────────────────────────────────────────────────────────────────
+
+  // Called once on app init. Silently restores admin session from saved password.
+  async function autoLogin() {
+    const password = localStorage.getItem(ADMIN_PASSWORD_KEY);
+    if (!password) return false;
     try {
-      return JSON.parse(localStorage.getItem(CONFIG_KEY) || '{}');
-    } catch { return {}; }
+      const cfg = await getRemoteConfig();
+      if (!cfg.encryptedPAT) return false;
+      _encryptedPAT = cfg.encryptedPAT;
+      _pat = await decryptPAT(_encryptedPAT, password);
+      return true;
+    } catch {
+      // Saved password no longer works (PAT rotated) — clear it
+      localStorage.removeItem(ADMIN_PASSWORD_KEY);
+      return false;
+    }
   }
 
-  function saveConfig(cfg) {
-    // Never persist branch — it comes from config.json
-    const { branch: _ignored, ...rest } = cfg;
-    localStorage.setItem(CONFIG_KEY, JSON.stringify(rest));
+  // Called when user submits the login form. Throws on wrong password.
+  async function login(password) {
+    const cfg = await getRemoteConfig();
+    if (!cfg.encryptedPAT) throw new Error('No encrypted PAT found in config.json');
+    _encryptedPAT = cfg.encryptedPAT;
+    _pat = await decryptPAT(_encryptedPAT, password);
+    localStorage.setItem(ADMIN_PASSWORD_KEY, password);
   }
 
-  function isConfigured() {
-    const c = getConfig();
-    return !!(c.owner && c.repo && c.pat);
+  function logout() {
+    _pat = null;
+    localStorage.removeItem(ADMIN_PASSWORD_KEY);
   }
 
-  function headers(pat) {
+  function isAdmin() {
+    return !!_pat;
+  }
+
+  // ── HTTP helpers ──────────────────────────────────────────────────────────
+
+  function authHeaders() {
     return {
-      'Authorization': `token ${pat}`,
+      'Authorization': `token ${_pat}`,
       'Accept': 'application/vnd.github.v3+json',
       'Content-Type': 'application/json',
     };
   }
 
-  async function readFile(path) {
-    const { owner, repo, pat } = getConfig();
-    if (!owner || !repo) throw new Error('GitHub not configured');
-    const branch = await getBranch();
+  function readHeaders() {
+    return { 'Accept': 'application/vnd.github.v3+json' };
+  }
 
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}?ref=${branch}`;
-    const h = pat ? headers(pat) : { 'Accept': 'application/vnd.github.v3+json' };
-    const res = await fetch(url, { headers: h });
+  // ── File operations ───────────────────────────────────────────────────────
+
+  async function readFile(path) {
+    const branch = await getBranch();
+    const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}?ref=${branch}`;
+    const res  = await fetch(url, { headers: _pat ? authHeaders() : readHeaders() });
 
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`GitHub read failed: ${res.status}`);
 
-    const data = await res.json();
+    const data    = await res.json();
     const content = atob(data.content.replace(/\n/g, ''));
     return { content: JSON.parse(content), sha: data.sha };
   }
 
   async function writeFile(path, content, sha) {
-    const { owner, repo, pat } = getConfig();
-    if (!pat) throw new Error('No PAT configured — cannot write');
+    if (!_pat) throw new Error('Admin login required');
     const branch = await getBranch();
 
     const body = {
@@ -78,8 +121,8 @@ const Storage = (() => {
     };
     if (sha) body.sha = sha;
 
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-    const res = await fetch(url, { method: 'PUT', headers: headers(pat), body: JSON.stringify(body) });
+    const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+    const res = await fetch(url, { method: 'PUT', headers: authHeaders(), body: JSON.stringify(body) });
 
     if (!res.ok) {
       const err = await res.json().catch(() => ({}));
@@ -89,19 +132,31 @@ const Storage = (() => {
     return data.content.sha;
   }
 
+  async function deleteFile(path, sha) {
+    if (!_pat) throw new Error('Admin login required');
+    const branch = await getBranch();
+
+    const body = { message: `Delete ${path}`, sha, branch };
+    const url  = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}`;
+    const res  = await fetch(url, { method: 'DELETE', headers: authHeaders(), body: JSON.stringify(body) });
+
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      throw new Error(err.message || `GitHub delete failed: ${res.status}`);
+    }
+  }
+
+  // ── Session / leaderboard ─────────────────────────────────────────────────
+
   async function listSessions() {
     const files = await listSessionFiles();
     return files.map(f => f.date);
   }
 
   async function listSessionFiles() {
-    const { owner, repo, pat } = getConfig();
-    if (!owner || !repo) return [];
     const branch = await getBranch();
-
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/data/sessions?ref=${branch}`;
-    const h = pat ? headers(pat) : { 'Accept': 'application/vnd.github.v3+json' };
-    const res = await fetch(url, { headers: h });
+    const url    = `https://api.github.com/repos/${OWNER}/${REPO}/contents/data/sessions?ref=${branch}`;
+    const res    = await fetch(url, { headers: _pat ? authHeaders() : readHeaders() });
 
     if (res.status === 404) return [];
     if (!res.ok) return [];
@@ -113,37 +168,18 @@ const Storage = (() => {
       .sort((a, b) => b.date.localeCompare(a.date));
   }
 
-  async function deleteFile(path, sha) {
-    const { owner, repo, pat } = getConfig();
-    if (!pat) throw new Error('No PAT configured — cannot delete');
-    const branch = await getBranch();
-
-    const body = { message: `Delete ${path}`, sha, branch };
-    const url = `https://api.github.com/repos/${owner}/${repo}/contents/${path}`;
-    const res = await fetch(url, { method: 'DELETE', headers: headers(pat), body: JSON.stringify(body) });
-
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.message || `GitHub delete failed: ${res.status}`);
-    }
-  }
-
-  async function getLeaderboard() {
-    return readFile('data/leaderboard.json');
-  }
-
+  async function getLeaderboard()             { return readFile('data/leaderboard.json'); }
   async function saveLeaderboard(players, sha) {
     const content = { players, updatedAt: new Date().toISOString().split('T')[0] };
     return writeFile('data/leaderboard.json', content, sha);
   }
+  async function getSession(date)                    { return readFile(`data/sessions/${date}.json`); }
+  async function saveSession(date, sessionData, sha) { return writeFile(`data/sessions/${date}.json`, sessionData, sha); }
 
-  async function getSession(date) {
-    return readFile(`data/sessions/${date}.json`);
-  }
-
-  async function saveSession(date, sessionData, sha) {
-    return writeFile(`data/sessions/${date}.json`, sessionData, sha);
-  }
-
-  return { getConfig, saveConfig, isConfigured, getBranch, getLeaderboard, saveLeaderboard, getSession, saveSession, listSessions, listSessionFiles, deleteFile };
+  return {
+    getBranch, autoLogin, login, logout, isAdmin,
+    getLeaderboard, saveLeaderboard,
+    getSession, saveSession,
+    listSessions, listSessionFiles, deleteFile,
+  };
 })();

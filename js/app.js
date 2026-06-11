@@ -8,8 +8,12 @@ function appData() {
     toast: null,
     toastTimer: null,
 
-    // GitHub config
-    cfg: { owner: '', repo: '', pat: '' },
+    // Auth
+    isAdmin: false,
+    showLogin: false,
+    loginPassword: '',
+    loginError: null,
+
     branch: null,
 
     // Leaderboard
@@ -34,17 +38,10 @@ function appData() {
 
     // ── Init ───────────────────────────────────────────────────────────────
     async init() {
-      this.cfg = { ...{ owner: '', repo: '', branch: 'main', pat: '' }, ...Storage.getConfig() };
-
-      if (!this.cfg.owner || !this.cfg.repo) {
-        this.view = 'setup';
-        return;
-      }
-
-      this.branch = await Storage.getBranch();
+      this.branch  = await Storage.getBranch();
+      this.isAdmin = await Storage.autoLogin();
       await this.loadHome();
 
-      // Handle hash routing
       window.addEventListener('hashchange', () => this.route());
       this.route();
     },
@@ -59,11 +56,22 @@ function appData() {
       }
     },
 
-    // ── Config ─────────────────────────────────────────────────────────────
-    async saveConfig() {
-      Storage.saveConfig(this.cfg);
-      this.view = 'home';
-      await this.loadHome();
+    // ── Auth ───────────────────────────────────────────────────────────────
+    async login() {
+      this.loginError = null;
+      try {
+        await Storage.login(this.loginPassword);
+        this.isAdmin = true;
+        this.showLogin = false;
+        this.loginPassword = '';
+      } catch {
+        this.loginError = 'Incorrect password.';
+      }
+    },
+
+    logout() {
+      Storage.logout();
+      this.isAdmin = false;
     },
 
     // ── Home ───────────────────────────────────────────────────────────────
@@ -578,11 +586,10 @@ function appData() {
 
     // ── WhatsApp share ────────────────────────────────────────────────────
     shareOnWhatsApp() {
-      const { owner, repo, branch } = Storage.getConfig();
-      const base = `https://${owner}.github.io/${repo}`;
-      const date = this.session.date;
+      const base  = 'https://seminolas.github.io/ladder';
+      const date  = this.session.date;
       const label = formatDate(date);
-      const msg = `🏸 ${label} — Results: ${base}/#/session/${date}/results | Leaderboard: ${base}/#/leaderboard`;
+      const msg   = `🏸 ${label} — Results: ${base}/#/session/${date}/results | Leaderboard: ${base}/#/leaderboard`;
       window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     },
 

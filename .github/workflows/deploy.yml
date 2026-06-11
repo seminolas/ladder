@@ -37,12 +37,12 @@ jobs:
         run: |
           cp -r _main/. dist/
           rm -rf dist/.git
-          echo '{ "branch": "main" }' > dist/config.json
+          jq '. + {"branch": "main"}' _main/config.json > dist/config.json
           if [ -d _staging ]; then
             mkdir -p dist/staging
             cp -r _staging/. dist/staging/
             rm -rf dist/staging/.git
-            echo '{ "branch": "staging" }' > dist/staging/config.json
+            jq '. + {"branch": "staging"}' _staging/config.json > dist/staging/config.json
           fi
 
       - uses: actions/configure-pages@v4
