@@ -100,7 +100,8 @@ const Storage = (() => {
   async function readFile(path) {
     const branch = await getBranch();
     const url = `https://api.github.com/repos/${OWNER}/${REPO}/contents/${path}?ref=${branch}`;
-    const res  = await fetch(url, { headers: _pat ? authHeaders() : readHeaders() });
+    // Public repo — always read unauthenticated; avoids 403s if the PAT lacks read scope
+    const res  = await fetch(url, { headers: readHeaders() });
 
     if (res.status === 404) return null;
     if (!res.ok) throw new Error(`GitHub read failed: ${res.status}`);
@@ -156,7 +157,8 @@ const Storage = (() => {
   async function listSessionFiles() {
     const branch = await getBranch();
     const url    = `https://api.github.com/repos/${OWNER}/${REPO}/contents/data/sessions?ref=${branch}`;
-    const res    = await fetch(url, { headers: _pat ? authHeaders() : readHeaders() });
+    // Public repo — always read unauthenticated
+    const res    = await fetch(url, { headers: readHeaders() });
 
     if (res.status === 404) return [];
     if (!res.ok) return [];
