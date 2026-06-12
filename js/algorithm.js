@@ -25,22 +25,32 @@ function getPairings(size) {
 
 // Divide attendees (in leaderboard order) into boxes.
 // Boxes of 4 come first, boxes of 5 come last.
+// Up to 30 players (6 courts × 5): cap total boxes at MAX_COURTS by preferring
+// 5-player boxes over creating a 7th box. Above 30 players the cap is lifted.
 // Returns array of box objects.
+const MAX_COURTS = 6;
 function assignBoxes(attendees) {
   const n = attendees.length;
   let numFours = 0, numFives = 0;
 
+  // For n ≤ MAX_COURTS*5 apply the court cap; above it use no cap.
+  const boxCap = n <= MAX_COURTS * 5 ? MAX_COURTS : Infinity;
+  let found = false;
   for (let a = Math.floor(n / 4); a >= 0; a--) {
     const rem = n - 4 * a;
-    if (rem >= 0 && rem % 5 === 0) {
-      numFours = a;
-      numFives = rem / 5;
-      break;
+    if (rem >= 0 && rem % 5 === 0 && a + rem / 5 <= boxCap) {
+      numFours = a; numFives = rem / 5; found = true; break;
+    }
+  }
+  // Fallback (no cap) — handles n > MAX_COURTS*5 and unsplittable edge cases
+  if (!found) {
+    for (let a = Math.floor(n / 4); a >= 0; a--) {
+      const rem = n - 4 * a;
+      if (rem >= 0 && rem % 5 === 0) { numFours = a; numFives = rem / 5; break; }
     }
   }
 
-  // Edge case: 6 or 7 players can't split into 4s and 5s
-  // Put them in one box and flag it
+  // Edge case: n can't be expressed as groups of 4 and 5 (e.g. 6 or 7 players)
   if (numFours === 0 && numFives === 0) {
     return [{ players: [...attendees], matches: [], edgeCase: true, finalPlacings: null }];
   }
