@@ -695,11 +695,10 @@ function appData() {
       const players = this.leaderboard;
       const n = players.length;
 
-      // Colour stops: deep blue → cyan → lime → amber → orange → red → light salmon
+      // Colour stops: blue → cyan → lime → amber → orange → red → light salmon
       const stops = [
-        [0.00,  30,  58, 138],
-        [0.15,  29,  78, 216],
-        [0.28,   8, 145, 178],
+        [0.00,  59, 130, 246],
+        [0.25,   8, 145, 178],
         [0.38, 101, 163,  13],
         [0.50, 202, 138,   4],
         [0.63, 249, 115,  22],
@@ -729,23 +728,24 @@ function appData() {
 <style>
 @page{size:A4 portrait;margin:1.5cm}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-body{font-family:Arial,Helvetica,sans-serif;font-size:13pt}
+body{font-family:Arial,Helvetica,sans-serif;font-size:14pt}
 table{width:100%;border-collapse:collapse}
 tr{page-break-inside:avoid;break-inside:avoid}
-td{border:1px solid #000;padding:2pt 5pt;vertical-align:middle}
+td{border:1.5pt solid #000;padding:1pt 5pt;vertical-align:middle}
 .n{width:36pt;text-align:center;font-weight:bold}
 .ht{font-weight:bold;text-align:center}
 .hd{font-weight:bold;text-align:center}
-.ha{width:55pt;font-weight:bold;text-align:center}
-.hs{width:90pt;font-weight:bold;text-align:center}
+.ha{width:85pt;font-weight:bold;text-align:center}
+.hs{width:85pt;font-weight:bold;text-align:center}
+.er{height:28pt}
 </style>
 </head>
 <body>
 <table><tbody>
 <tr><td class="n"></td><td class="ht">Box Doubles Draw</td><td class="ha"></td><td class="hs"></td></tr>
 <tr><td class="n"></td><td class="hd">${dateStr}</td><td class="ha">Attend</td><td class="hs">Signature</td></tr>
-<tr><td></td><td></td><td></td><td></td></tr>
-<tr><td></td><td></td><td></td><td></td></tr>
+<tr class="er"><td></td><td></td><td></td><td></td></tr>
+<tr class="er"><td></td><td></td><td></td><td></td></tr>
 ${rows}
 </tbody></table>
 <script>window.print()<\/script>
