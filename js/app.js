@@ -91,7 +91,7 @@ function appData() {
       try {
         const lb = await Storage.getLeaderboard();
         if (lb) {
-          this.leaderboard = lb.content.players.map(normalizeName);
+          this.leaderboard = lb.content.players;
           this.leaderboardSha = lb.sha;
         }
         this.sessionDates = await Storage.listSessions();

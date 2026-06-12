@@ -1,8 +1,3 @@
-// Normalise smart/curly quotes to plain ASCII apostrophe.
-function normalizeName(name) {
-  return name.replace(/[‘’ʼ`´]/g, "'");
-}
-
 // Parses the club leaderboard CSV.
 // Detects player rows by: col A is a positive integer, col B is a non-empty string.
 // Handles any number of header rows and any delimiter (comma or tab).
@@ -27,7 +22,7 @@ function parseLeaderboardCSV(text) {
     const pos = parseInt(posCol, 10);
     if (!Number.isInteger(pos) || pos <= 0) continue;
 
-    const name = normalizeName(nameCol.trim());
+    const name = nameCol.trim();
     if (name) players.push({ pos, name });
   }
 
