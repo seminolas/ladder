@@ -1,10 +1,58 @@
 {
   "date": "2026-06-09",
-  "status": "attendance",
+  "status": "boxes_assigned",
   "attendees": [
-    "Rory Weston"
+    "Rory Weston",
+    "Kenzie Peachey",
+    "Aashay Shah",
+    "Arun Nair"
   ],
-  "boxes": [],
+  "boxes": [
+    {
+      "players": [
+        "Rory Weston",
+        "Kenzie Peachey",
+        "Aashay Shah",
+        "Arun Nair"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    }
+  ],
   "leaderboardBefore": [
     "Rory Weston",
     "Kenzie Peachey",
