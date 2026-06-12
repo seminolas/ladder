@@ -31,6 +31,7 @@ function appData() {
 
     // UI helpers
     attendanceSearch: '',
+    leaderboardSearch: '',
     highlightIdx: -1,
     addPlayerName: '',
     addPlayerPos: null,
@@ -58,9 +59,12 @@ function appData() {
 
     async route() {
       const hash = location.hash.replace('#', '') || '/';
-      const m = hash.match(/^\/session\/(\d{4}-\d{2}-\d{2})/);
+      const m = hash.match(/^\/session\/(\d{4}-\d{2}-\d{2})(\/(\w+))?/);
       if (m) {
         await this.openSession(m[1]);
+        const sub = m[3];
+        if (sub === 'results') this.sessionTab = 2;
+        else if (sub === 'leaderboard') this.sessionTab = 3;
       } else {
         this.view = 'home';
       }
@@ -677,7 +681,7 @@ function appData() {
       const base  = 'https://seminolas.github.io/ladder';
       const date  = this.session.date;
       const label = formatDate(date);
-      const msg   = `🏸 ${label} — Results: ${base}/#/session/${date}/results | Leaderboard: ${base}/#/leaderboard`;
+      const msg   = `🏸 ${label} — Results: ${base}/#/session/${date}/results | Leaderboard: ${base}/#/session/${date}/leaderboard`;
       window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
     },
 

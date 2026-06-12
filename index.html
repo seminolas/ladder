@@ -630,19 +630,21 @@
 
       <template x-if="session?.status === 'closed' && session?.leaderboardAfter">
         <div class="bg-white rounded-xl shadow overflow-hidden">
-          <div class="px-4 py-3 border-b">
+          <div class="px-4 py-3 border-b flex items-center gap-3">
             <h3 class="font-semibold">New Leaderboard</h3>
+            <input type="text" x-model="leaderboardSearch" placeholder="Search name…"
+                   class="ml-auto border border-gray-300 rounded px-2 py-1 text-sm w-40 focus:outline-none focus:ring-1 focus:ring-blue-400">
           </div>
           <div class="divide-y max-h-[65vh] overflow-y-auto">
-            <template x-for="(name, i) in session.leaderboardAfter" :key="i">
+            <template x-for="entry in session.leaderboardAfter.map((n,i)=>({n,i})).filter(e=>!leaderboardSearch||e.n.toLowerCase().includes(leaderboardSearch.toLowerCase()))" :key="entry.i">
               <div class="flex items-center px-4 py-2 text-sm"
-                   :class="session.attendees.includes(name) ? 'bg-white' : 'bg-gray-50 text-gray-400'">
-                <span class="w-8 text-gray-400 text-xs" x-text="i + 1"></span>
-                <span class="flex-1" x-text="name"></span>
-                <span x-show="session.attendees.includes(name)"
-                      :class="deltaClass(name)"
+                   :class="session.attendees.includes(entry.n) ? 'bg-white' : 'bg-gray-50 text-gray-400'">
+                <span class="w-8 text-gray-400 text-xs" x-text="entry.i + 1"></span>
+                <span class="flex-1" x-text="entry.n"></span>
+                <span x-show="session.attendees.includes(entry.n)"
+                      :class="deltaClass(entry.n)"
                       class="text-xs ml-2 w-8 text-right"
-                      x-text="deltaLabel(name)"></span>
+                      x-text="deltaLabel(entry.n)"></span>
               </div>
             </template>
           </div>
