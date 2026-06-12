@@ -737,15 +737,14 @@ td{border:1.5pt solid #000;padding:1pt 5pt;vertical-align:middle}
 .hd{font-weight:bold;text-align:center}
 .ha{width:85pt;font-weight:bold;text-align:center}
 .hs{width:85pt;font-weight:bold;text-align:center}
-.er{height:28pt}
 </style>
 </head>
 <body>
 <table><tbody>
 <tr><td class="n"></td><td class="ht">Box Doubles Draw</td><td class="ha"></td><td class="hs"></td></tr>
 <tr><td class="n"></td><td class="hd">${dateStr}</td><td class="ha">Attend</td><td class="hs">Signature</td></tr>
-<tr class="er"><td></td><td></td><td></td><td></td></tr>
-<tr class="er"><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td>&nbsp;</td><td></td><td></td></tr>
+<tr><td></td><td>&nbsp;</td><td></td><td></td></tr>
 ${rows}
 </tbody></table>
 <script>window.print()<\/script>
