@@ -82,7 +82,8 @@
         "Kenzie Peachey",
         "Dee Phetsomphou",
         "Trevor Hollings",
-        "Martin Hedlund"
+        "Martin Hedlund",
+        "Vilius Vaivada"
       ],
       "matches": [
         {
@@ -92,29 +93,51 @@
           ],
           "pair2": [
             2,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            2,
             3
+          ],
+          "pair2": [
+            1,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            3,
+            4
+          ],
+          "pair2": [
+            0,
+            2
           ],
           "sets": []
         },
         {
           "pair1": [
             0,
-            2
+            3
           ],
           "pair2": [
             1,
-            3
+            2
           ],
           "sets": []
         },
         {
           "pair1": [
-            0,
+            1,
             3
           ],
           "pair2": [
-            1,
-            2
+            0,
+            4
           ],
           "sets": []
         }
@@ -123,54 +146,11 @@
     },
     {
       "players": [
-        "Vilius Vaivada",
         "Chia BingHon",
         "Noushad Kasim",
-        "Kareen Hansard"
-      ],
-      "matches": [
-        {
-          "pair1": [
-            0,
-            1
-          ],
-          "pair2": [
-            2,
-            3
-          ],
-          "sets": []
-        },
-        {
-          "pair1": [
-            0,
-            2
-          ],
-          "pair2": [
-            1,
-            3
-          ],
-          "sets": []
-        },
-        {
-          "pair1": [
-            0,
-            3
-          ],
-          "pair2": [
-            1,
-            2
-          ],
-          "sets": []
-        }
-      ],
-      "finalPlacings": null
-    },
-    {
-      "players": [
+        "Kareen Hansard",
         "Kayil Ward-Ruddell",
-        "Tricia Liew",
-        "Manulal Sankaran",
-        "Nelson Hall"
+        "Tricia Liew"
       ],
       "matches": [
         {
@@ -180,29 +160,51 @@
           ],
           "pair2": [
             2,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            2,
             3
+          ],
+          "pair2": [
+            1,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            3,
+            4
+          ],
+          "pair2": [
+            0,
+            2
           ],
           "sets": []
         },
         {
           "pair1": [
             0,
-            2
+            3
           ],
           "pair2": [
             1,
-            3
+            2
           ],
           "sets": []
         },
         {
           "pair1": [
-            0,
+            1,
             3
           ],
           "pair2": [
-            1,
-            2
+            0,
+            4
           ],
           "sets": []
         }
@@ -211,10 +213,11 @@
     },
     {
       "players": [
+        "Manulal Sankaran",
+        "Nelson Hall",
         "Karlos Hanna",
         "Emil John",
-        "Jeet Arora",
-        "Emil Zaharison"
+        "Jeet Arora"
       ],
       "matches": [
         {
@@ -224,29 +227,51 @@
           ],
           "pair2": [
             2,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            2,
             3
+          ],
+          "pair2": [
+            1,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            3,
+            4
+          ],
+          "pair2": [
+            0,
+            2
           ],
           "sets": []
         },
         {
           "pair1": [
             0,
-            2
+            3
           ],
           "pair2": [
             1,
-            3
+            2
           ],
           "sets": []
         },
         {
           "pair1": [
-            0,
+            1,
             3
           ],
           "pair2": [
-            1,
-            2
+            0,
+            4
           ],
           "sets": []
         }
@@ -255,6 +280,7 @@
     },
     {
       "players": [
+        "Emil Zaharison",
         "Peter Jochems",
         "Dre King",
         "Jen Brown",
@@ -268,29 +294,51 @@
           ],
           "pair2": [
             2,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            2,
             3
+          ],
+          "pair2": [
+            1,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            3,
+            4
+          ],
+          "pair2": [
+            0,
+            2
           ],
           "sets": []
         },
         {
           "pair1": [
             0,
-            2
+            3
           ],
           "pair2": [
             1,
-            3
+            2
           ],
           "sets": []
         },
         {
           "pair1": [
-            0,
+            1,
             3
           ],
           "pair2": [
-            1,
-            2
+            0,
+            4
           ],
           "sets": []
         }
@@ -491,7 +539,7 @@
     "Jacob Warren",
     "Jannelle Rodgers",
     "Karizza Lyn Arzadon",
-    "Priya OâNeill",
+    "Priya OÃ¢ÂÂNeill",
     "Amanda Lee",
     "*** Lennon Lee ***",
     "Amber Lorigan",
