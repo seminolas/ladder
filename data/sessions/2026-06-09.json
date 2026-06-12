@@ -1,6 +1,6 @@
 {
   "date": "2026-06-09",
-  "status": "boxes_assigned",
+  "status": "in_progress",
   "attendees": [
     "Rory Weston",
     "Kenzie Peachey",
@@ -25,7 +25,12 @@
             2,
             3
           ],
-          "sets": []
+          "sets": [
+            [
+              30,
+              ""
+            ]
+          ]
         },
         {
           "pair1": [
