@@ -65,7 +65,12 @@
             1,
             2
           ],
-          "sets": []
+          "sets": [
+            [
+              23,
+              ""
+            ]
+          ]
         }
       ],
       "finalPlacings": null
