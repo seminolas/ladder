@@ -79,16 +79,18 @@ function computeBoxStandings(box, leaderboardBefore) {
 
     let p1Sets = 0, p2Sets = 0;
     for (const [s1, s2] of sets) {
-      if (s1 > s2) p1Sets++;
-      else if (s2 > s1) p2Sets++;
+      if (s1 === '' || s1 == null || s2 === '' || s2 == null) continue;
+      const n1 = Number(s1), n2 = Number(s2);
+      if (n1 > n2) p1Sets++;
+      else if (n2 > n1) p2Sets++;
 
       for (const pi of pair1) {
-        stats[pi].pointsFor += s1;
-        stats[pi].pointsAgainst += s2;
+        stats[pi].pointsFor += n1;
+        stats[pi].pointsAgainst += n2;
       }
       for (const pi of pair2) {
-        stats[pi].pointsFor += s2;
-        stats[pi].pointsAgainst += s1;
+        stats[pi].pointsFor += n2;
+        stats[pi].pointsAgainst += n1;
       }
     }
 
