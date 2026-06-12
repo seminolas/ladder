@@ -718,7 +718,7 @@ function appData() {
 
       const rows = players.map((name, i) => {
         const esc = name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-        return `<tr><td class="n" style="background:${lerp(i)}">${i+1}</td><td class="p">${esc}</td><td></td><td></td></tr>`;
+        return `<tr><td class="n" style="background:${lerp(i)}">${i+1}</td><td>${esc}</td><td></td><td></td></tr>`;
       }).join('\n');
 
       const html = `<!DOCTYPE html>
@@ -729,12 +729,12 @@ function appData() {
 <style>
 @page{size:A4 portrait;margin:1.5cm}
 *{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
-body{font-family:Arial,Helvetica,sans-serif;font-size:10pt}
+body{font-family:Arial,Helvetica,sans-serif;font-size:13pt}
 table{width:100%;border-collapse:collapse}
-td{border:1px solid #000;height:20pt;padding:0 5pt;vertical-align:middle}
-.n{width:36pt;text-align:center;font-weight:bold;color:#fff;text-shadow:0 0 3px rgba(0,0,0,.35)}
-.p{font-weight:bold;text-decoration:underline}
-.ht{font-size:13pt;font-weight:bold;text-align:center}
+tr{page-break-inside:avoid;break-inside:avoid}
+td{border:1px solid #000;padding:2pt 5pt;vertical-align:middle}
+.n{width:36pt;text-align:center;font-weight:bold}
+.ht{font-weight:bold;text-align:center}
 .hd{font-weight:bold;text-align:center}
 .ha{width:55pt;font-weight:bold;text-align:center}
 .hs{width:90pt;font-weight:bold;text-align:center}
