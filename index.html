@@ -109,21 +109,6 @@
             ⬇ Export
           </button>
         </template>
-        <template x-if="view === 'home'">
-          <div class="relative group">
-            <button @click="canPrintLadder && printLadder()"
-                    :disabled="!canPrintLadder"
-                    :class="!canPrintLadder ? 'opacity-40 cursor-not-allowed' : ''"
-                    class="text-xs bg-gray-100 hover:bg-gray-200 rounded px-2 py-1 text-gray-600 whitespace-nowrap">
-              🖨 Ladder
-            </button>
-            <div x-show="!canPrintLadder"
-                 class="absolute bottom-full right-0 mb-2 px-2 py-1.5 bg-gray-800 text-white text-xs rounded whitespace-nowrap opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none z-10">
-              Open session required
-              <div class="absolute top-full right-3 border-4 border-transparent border-t-gray-800"></div>
-            </div>
-          </div>
-        </template>
 
         <!-- ── SESSION tab-specific buttons ── -->
         <!-- Tab 1: Assign Boxes -->
@@ -135,6 +120,14 @@
             <span x-text="session?.status === 'boxes_assigned' ? 'Reassign ↺' : 'Assign Boxes →'"></span>
           </button>
         </template>
+        <!-- Tab 1: Print Ladder -->
+        <template x-if="view === 'session' && sessionTab === 1">
+          <button @click="printLadder()"
+                  class="text-xs bg-gray-100 hover:bg-gray-200 rounded px-2 py-1 text-gray-600 whitespace-nowrap">
+            🖨 Ladder
+          </button>
+        </template>
+
         <!-- Tab 2: Print All -->
         <template x-if="view === 'session' && sessionTab === 2">
           <button @click="printBoxes()"

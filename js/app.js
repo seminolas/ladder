@@ -565,11 +565,6 @@ function appData() {
       return allScoresComplete(this.session.boxes);
     },
 
-    get canPrintLadder() {
-      return this.leaderboard.length > 0
-        && !!this.mostRecentSessionStatus
-        && this.mostRecentSessionStatus !== 'closed';
-    },
 
     // ── Close session ──────────────────────────────────────────────────────
     async closeSession() {
@@ -692,7 +687,7 @@ function appData() {
     },
 
     printLadder() {
-      const isoDate = this.sessionDates[0] ?? '';
+      const isoDate = this.selectedDate ?? '';
       const d = isoDate ? new Date(isoDate + 'T00:00:00') : null;
       const dateStr = d
         ? `${_DAYS[d.getDay()]}, ${_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
