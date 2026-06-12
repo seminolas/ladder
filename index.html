@@ -334,7 +334,7 @@
       <!-- Search bar -->
       <div class="flex gap-2 mb-3 no-print items-center">
         <div class="relative flex-1">
-          <input type="search" x-model="attendanceSearch"
+          <input type="search" x-model="sessionSearch"
                  @input="onSearchInput()"
                  @keydown="attendanceKeydown($event)"
                  placeholder="Search players…"
@@ -364,10 +364,10 @@
         <!-- No match → offer to add player (admin only) -->
         <template x-if="isAdmin && searchHasNoMatch && !showAddPlayer">
           <div class="px-4 py-3">
-            <p class="text-sm text-gray-400 mb-2">No match for "<span x-text="attendanceSearch"></span>"</p>
+            <p class="text-sm text-gray-400 mb-2">No match for "<span x-text="sessionSearch"></span>"</p>
             <button @click="prepareAddPlayer()"
                     class="text-sm text-blue-700 font-medium">
-              + Add "<span x-text="attendanceSearch"></span>" as new player
+              + Add "<span x-text="sessionSearch"></span>" as new player
             </button>
           </div>
         </template>
@@ -389,7 +389,7 @@
               </div>
               <button @click="confirmAddPlayer()"
                       class="bg-blue-700 text-white text-sm rounded px-3 py-1.5">Add & Mark Attending</button>
-              <button @click="showAddPlayer = false; attendanceSearch = ''"
+              <button @click="showAddPlayer = false; sessionSearch = ''"
                       class="text-gray-400 text-sm px-2 py-1.5">Cancel</button>
             </div>
           </div>
@@ -410,7 +410,7 @@
       <!-- Search bar -->
       <div class="flex gap-2 mb-3 no-print items-center" x-show="session?.boxes?.length">
         <div class="relative flex-1">
-          <input type="search" x-model="boxesSearch"
+          <input type="search" x-model="sessionSearch"
                  placeholder="Search players…"
                  autocomplete="off"
                  class="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700">
@@ -519,10 +519,12 @@
             </div>
 
             <!-- Digital score entry (screen only) -->
-            <div class="no-print bg-white rounded-xl shadow p-4 mb-6" x-show="isBoxVisible(bi)">
-              <div class="flex items-center justify-between mb-4"
-                   :class="session?.status === 'closed' ? 'cursor-pointer select-none' : ''"
-                   @click="session?.status === 'closed' && toggleBoxExpanded(bi)">
+            <div class="no-print bg-white rounded-xl shadow mb-6" x-show="isBoxVisible(bi)"
+                 :class="session?.status === 'closed' && !isBoxExpanded(bi) ? 'px-4 py-3 cursor-pointer' : 'p-4'"
+                 @click="session?.status === 'closed' && !isBoxExpanded(bi) && toggleBoxExpanded(bi)">
+              <div class="flex items-center justify-between"
+                   :class="{ 'mb-4': isBoxExpanded(bi), 'cursor-pointer select-none': session?.status === 'closed' }"
+                   @click.stop="session?.status === 'closed' && toggleBoxExpanded(bi)">
                 <p class="font-bold text-xs uppercase tracking-widest text-gray-700"
                    x-text="boxHeaderLabel(box, bi)"></p>
                 <span x-show="session?.status === 'closed'" class="text-gray-400 text-sm leading-none"
@@ -652,7 +654,7 @@
         <div>
           <div class="flex gap-2 mb-3 items-center">
             <div class="relative flex-1">
-              <input type="search" x-model="leaderboardSearch"
+              <input type="search" x-model="sessionSearch"
                      placeholder="Search players…"
                      autocomplete="off"
                      class="w-full border rounded-lg px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-700">
@@ -663,7 +665,7 @@
               <h3 class="font-semibold">New Leaderboard</h3>
             </div>
             <div class="divide-y max-h-[65vh] overflow-y-auto">
-              <template x-for="entry in session.leaderboardAfter.map((n,i)=>({n,i})).filter(e=>!leaderboardSearch||e.n.toLowerCase().includes(leaderboardSearch.toLowerCase()))" :key="entry.i">
+              <template x-for="entry in session.leaderboardAfter.map((n,i)=>({n,i})).filter(e=>!sessionSearch||e.n.toLowerCase().includes(sessionSearch.toLowerCase()))" :key="entry.i">
                 <div class="flex items-center px-4 py-2 text-sm"
                      :class="session.attendees.includes(entry.n) ? 'bg-white' : 'bg-gray-50 text-gray-400'">
                   <span class="w-8 text-gray-400 text-xs" x-text="entry.i + 1"></span>

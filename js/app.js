@@ -30,9 +30,7 @@ function appData() {
     sessionSha: null,
 
     // UI helpers
-    attendanceSearch: '',
-    leaderboardSearch: '',
-    boxesSearch: '',
+    sessionSearch: '',
     boxExpanded: {},
     highlightIdx: -1,
     addPlayerName: '',
@@ -260,7 +258,7 @@ function appData() {
         this.sessionTab = 1;
         this.view = 'session';
         this.boxExpanded = {};
-        this.boxesSearch = '';
+        this.sessionSearch = '';
 
         // Also ensure leaderboard is loaded
         if (this.leaderboard.length === 0) {
@@ -301,7 +299,7 @@ function appData() {
     },
 
     get filteredPlayers() {
-      const q = this.attendanceSearch.trim().toLowerCase();
+      const q = this.sessionSearch.trim().toLowerCase();
       const lb = this.attendanceLeaderboard;
       if (!q) return lb.map((name, i) => ({ name, rank: i + 1 }));
       return lb
@@ -310,7 +308,7 @@ function appData() {
     },
 
     get searchHasNoMatch() {
-      const q = this.attendanceSearch.trim().toLowerCase();
+      const q = this.sessionSearch.trim().toLowerCase();
       return q.length >= 2 && this.filteredPlayers.length === 0;
     },
 
@@ -395,7 +393,7 @@ function appData() {
 
     // ── Search keyboard navigation ─────────────────────────────────────────
     onSearchInput() {
-      this.highlightIdx = this.attendanceSearch.trim() ? 0 : -1;
+      this.highlightIdx = this.sessionSearch.trim() ? 0 : -1;
     },
 
     attendanceKeydown(e) {
@@ -417,11 +415,11 @@ function appData() {
         const idx = this.highlightIdx >= 0 ? this.highlightIdx : 0;
         if (players[idx]) {
           this.toggleAttendance(players[idx].name);
-          this.attendanceSearch = '';
+          this.sessionSearch = '';
           this.highlightIdx = -1;
         }
       } else if (e.key === 'Escape') {
-        this.attendanceSearch = '';
+        this.sessionSearch = '';
         this.highlightIdx = -1;
       }
     },
@@ -433,13 +431,13 @@ function appData() {
     },
 
     clearSearch() {
-      this.attendanceSearch = '';
+      this.sessionSearch = '';
       this.highlightIdx = -1;
     },
 
     // ── Add new player ─────────────────────────────────────────────────────
     prepareAddPlayer() {
-      this.addPlayerName = this.attendanceSearch.trim();
+      this.addPlayerName = this.sessionSearch.trim();
       this.addPlayerPos = this.leaderboard.length + 1;
       this.showAddPlayer = true;
     },
@@ -472,7 +470,7 @@ function appData() {
         }
 
         this.showAddPlayer = false;
-        this.attendanceSearch = '';
+        this.sessionSearch = '';
         this.showToast(`Added ${name} at position ${insertIdx + 1}.`);
       } catch (e) {
         this.showToast(e.message, 'error');
@@ -536,7 +534,7 @@ function appData() {
     },
 
     isBoxVisible(bi) {
-      const q = this.boxesSearch.trim().toLowerCase();
+      const q = this.sessionSearch.trim().toLowerCase();
       if (!q) return true;
       const box = this.session?.boxes?.[bi];
       if (!box) return false;
@@ -545,7 +543,7 @@ function appData() {
 
     isBoxExpanded(bi) {
       if (this.session?.status !== 'closed') return true;
-      if (this.boxesSearch.trim() && this.isBoxVisible(bi)) return true;
+      if (this.sessionSearch.trim() && this.isBoxVisible(bi)) return true;
       return !!this.boxExpanded[bi];
     },
 
