@@ -471,9 +471,9 @@ function appData() {
     },
 
     // ── Score entry ────────────────────────────────────────────────────────
-    // Returns label like "Rory & Shivam"
+    // Returns label like "Rory & Emil J."
     pairLabel(box, pairIndices) {
-      return pairIndices.map(i => this.firstName(box.players[i])).join(' & ');
+      return pairIndices.map(i => this.boxDisplayName(box, i)).join(' & ');
     },
 
     // First alphabetic word from a player name, stripping leading/trailing stars
@@ -487,8 +487,9 @@ function appData() {
     boxDisplayName(box, playerIdx) {
       const name = box.players[playerIdx];
       const first = this.firstName(name);
-      const hasDuplicate = box.players.some(
-        (other, i) => i !== playerIdx && this.firstName(other) === first
+      const allPlayers = this.session?.boxes?.flatMap(b => b.players) ?? box.players;
+      const hasDuplicate = allPlayers.some(
+        (other) => other !== name && this.firstName(other) === first
       );
       if (!hasDuplicate) return first;
       const clean = name.replace(/^\*+\s*|\s*\*+$/g, '').trim();
