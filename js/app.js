@@ -23,6 +23,7 @@ function appData() {
     // Sessions list (array of date strings, newest first)
     sessionDates: [],
     mostRecentSessionStatus: null,
+    selectedDate: null,
 
     // Active session
     session: null,
@@ -41,9 +42,18 @@ function appData() {
       this.branch  = await Storage.getBranch();
       this.isAdmin = await Storage.autoLogin();
       await this.loadHome();
+      this.initSelectedDate();
 
       window.addEventListener('hashchange', () => this.route());
       this.route();
+    },
+
+    initSelectedDate() {
+      if (this.mostRecentSessionStatus && this.mostRecentSessionStatus !== 'closed' && this.sessionDates[0]) {
+        this.selectedDate = this.sessionDates[0];
+      } else {
+        this.selectedDate = nextTuesday();
+      }
     },
 
     async route() {
@@ -109,6 +119,10 @@ function appData() {
 
     get isStaging() {
       return this.branch === 'staging';
+    },
+
+    get sessionDateExists() {
+      return !!this.selectedDate && this.sessionDates.includes(this.selectedDate);
     },
 
     // ── Staging reset ──────────────────────────────────────────────────────
@@ -266,7 +280,7 @@ function appData() {
     // for intentional actions (assign boxes, close session, etc).
     scheduleSave() {
       clearTimeout(this._saveTimer);
-      this._saveTimer = setTimeout(() => this.saveSession(), 800);
+      this._saveTimer = setTimeout(() => this.saveSession(), 2000);
     },
 
     // ── Attendance ─────────────────────────────────────────────────────────
@@ -294,6 +308,29 @@ function appData() {
 
     isAttending(name) {
       return this.session?.attendees.includes(name) ?? false;
+    },
+
+    // Returns 'not_started' | 'in_progress' | 'complete' | 'invalid'
+    matchStatus(boxIdx, matchIdx) {
+      return getMatchStatus(this.session.boxes[boxIdx].matches[matchIdx]);
+    },
+
+    // Returns true/false when both scores entered, null when incomplete.
+    setIsValid(match, setIdx) {
+      const s = match.sets?.[setIdx];
+      if (!s) return null;
+      const aEmpty = s[0] === '' || s[0] == null;
+      const bEmpty = s[1] === '' || s[1] == null;
+      if (aEmpty || bEmpty) return null;
+      return isValidSet(s[0], s[1]);
+    },
+
+    // True if both sets 0 and 1 are complete but split (different pair won each).
+    showThirdSet(match) {
+      const s0 = match.sets?.[0], s1 = match.sets?.[1];
+      if (!s0 || !s1) return false;
+      if (!isSetComplete(s0[0], s0[1]) || !isSetComplete(s1[0], s1[1])) return false;
+      return (Number(s0[0]) > Number(s0[1])) !== (Number(s1[0]) > Number(s1[1]));
     },
 
     async toggleAttendance(name) {
@@ -486,6 +523,14 @@ function appData() {
       if (this.session.status === 'boxes_assigned') {
         this.session.status = 'in_progress';
       }
+
+      // Clear a stale third set if sets 0 and 1 now form a sweep
+      const sets = match.sets;
+      if (sets.length > 2 && isSetComplete(sets[0]?.[0], sets[0]?.[1]) && isSetComplete(sets[1]?.[0], sets[1]?.[1])) {
+        const p1Won0 = Number(sets[0][0]) > Number(sets[0][1]);
+        const p1Won1 = Number(sets[1][0]) > Number(sets[1][1]);
+        if (p1Won0 === p1Won1) match.sets = match.sets.slice(0, 2);
+      }
     },
 
     saveScores() {
@@ -569,6 +614,7 @@ function appData() {
       const newLeaderboard = applyLeaderboardUpdate(this.session.boxes, this.session.leaderboardBefore);
       this.session.leaderboardAfter = newLeaderboard;
       this.session.status = 'closed';
+      delete this.session._editSnapshot;
 
       this.loading = true;
       try {

@@ -121,15 +121,65 @@ function computeBoxStandings(box, leaderboardBefore) {
   return stats;
 }
 
-// Determine whether all matches in all boxes have complete scores.
+// ── Score validation ──────────────────────────────────────────────────────────
+
+// Valid badminton set: first to 21 (lead ≥2), deuce extension up to 30-28,
+// cap at 30-29 (at 29-29 the next point wins regardless of 2-point rule).
+function isValidSet(a, b) {
+  a = Number(a); b = Number(b);
+  if (!Number.isFinite(a) || !Number.isFinite(b)) return false;
+  if (!Number.isInteger(a) || !Number.isInteger(b) || a < 0 || b < 0) return false;
+  if (a === b) return false;
+  const hi = Math.max(a, b), lo = Math.min(a, b);
+  if (hi === 21 && lo <= 19) return true;
+  if (lo >= 20 && hi === lo + 2 && hi <= 30) return true;
+  if (hi === 30 && lo === 29) return true;
+  return false;
+}
+
+// True when both scores are present and form a valid set result.
+function isSetComplete(a, b) {
+  if (a === '' || a == null || b === '' || b == null) return false;
+  return isValidSet(a, b);
+}
+
+// Classify a match by its current scoring state.
+// 'not_started' — no scores entered at all
+// 'in_progress' — some scores entered but no winner yet
+// 'invalid'     — at least one set has both scores entered but they are illegal
+// 'complete'    — one pair has won 2 sets and all entered sets are valid
+function getMatchStatus(match) {
+  const sets = match.sets || [];
+  let anySetsEntered = false;
+  let hasInvalid = false;
+  let pair1Sets = 0, pair2Sets = 0;
+
+  for (const s of sets) {
+    const aEmpty = s[0] === '' || s[0] == null;
+    const bEmpty = s[1] === '' || s[1] == null;
+    if (aEmpty && bEmpty) continue;
+    anySetsEntered = true;
+    if (aEmpty || bEmpty) return 'in_progress';
+    if (!isValidSet(s[0], s[1])) {
+      hasInvalid = true;
+    } else {
+      if (Number(s[0]) > Number(s[1])) pair1Sets++;
+      else pair2Sets++;
+    }
+  }
+
+  if (!anySetsEntered) return 'not_started';
+  if (hasInvalid) return 'invalid';
+  if (pair1Sets >= 2 || pair2Sets >= 2) return 'complete';
+  return 'in_progress';
+}
+
+// Determine whether all matches in all boxes are complete with valid scores.
 function allScoresComplete(boxes) {
   for (const box of boxes) {
     if (box.edgeCase) continue;
     for (const match of box.matches) {
-      if (!match.sets || match.sets.length === 0) return false;
-      for (const [s1, s2] of match.sets) {
-        if (s1 == null || s2 == null || s1 === '' || s2 === '') return false;
-      }
+      if (getMatchStatus(match) !== 'complete') return false;
     }
   }
   return true;
@@ -220,6 +270,9 @@ if (typeof module !== 'undefined') {
     getPairings,
     assignBoxes,
     computeBoxStandings,
+    isValidSet,
+    isSetComplete,
+    getMatchStatus,
     allScoresComplete,
     buildAttendeeOrder,
     applyLeaderboardUpdate,
