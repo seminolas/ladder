@@ -32,6 +32,8 @@ function appData() {
     // UI helpers
     attendanceSearch: '',
     leaderboardSearch: '',
+    boxesSearch: '',
+    boxExpanded: {},
     highlightIdx: -1,
     addPlayerName: '',
     addPlayerPos: null,
@@ -257,6 +259,8 @@ function appData() {
         this.mostRecentSessionStatus = result.content.status;
         this.sessionTab = 1;
         this.view = 'session';
+        this.boxExpanded = {};
+        this.boxesSearch = '';
 
         // Also ensure leaderboard is loaded
         if (this.leaderboard.length === 0) {
@@ -524,6 +528,29 @@ function appData() {
       if (words.length < 2) return first;
       const initial = words[words.length - 1].match(/[a-zA-ZÀ-ÖØ-öø-ÿ]/)?.[0];
       return initial ? `${first} ${initial.toUpperCase()}.` : first;
+    },
+
+    boxHeaderLabel(box, bi) {
+      const names = box.players.map((_, i) => this.boxDisplayName(box, i)).join(', ');
+      return `BOX ${bi + 1}: ${names}`;
+    },
+
+    isBoxVisible(bi) {
+      const q = this.boxesSearch.trim().toLowerCase();
+      if (!q) return true;
+      const box = this.session?.boxes?.[bi];
+      if (!box) return false;
+      return box.players.some(name => name.toLowerCase().includes(q));
+    },
+
+    isBoxExpanded(bi) {
+      if (this.session?.status !== 'closed') return true;
+      if (this.boxesSearch.trim() && this.isBoxVisible(bi)) return true;
+      return !!this.boxExpanded[bi];
+    },
+
+    toggleBoxExpanded(bi) {
+      this.boxExpanded = { ...this.boxExpanded, [bi]: !this.boxExpanded[bi] };
     },
 
     isSitout(boxIndex, matchIndex, playerIndex) {
