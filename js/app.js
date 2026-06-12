@@ -325,6 +325,29 @@ function appData() {
       return isValidSet(s[0], s[1]);
     },
 
+    // Border classes for a single score input: green = winner, red = loser/invalid.
+    scoreInputClass(match, setIdx, side) {
+      const s = match.sets?.[setIdx];
+      if (!s) return '';
+      const a = s[0], b = s[1];
+      if (a === '' || a == null || b === '' || b == null) return '';
+      if (!isValidSet(a, b)) return 'border-red-400 bg-red-50';
+      const sideWins = side === 0 ? Number(a) > Number(b) : Number(b) > Number(a);
+      return sideWins ? 'border-green-500 bg-green-50' : 'border-red-400 bg-red-50';
+    },
+
+    // Text-colour class for a pair label once the match is complete.
+    pairResultClass(match, pairSide) {
+      if (getMatchStatus(match) !== 'complete') return 'text-gray-800';
+      let p1Sets = 0, p2Sets = 0;
+      for (const s of (match.sets || [])) {
+        if (!isValidSet(s[0], s[1])) continue;
+        if (Number(s[0]) > Number(s[1])) p1Sets++; else p2Sets++;
+      }
+      const wins = pairSide === 0 ? p1Sets > p2Sets : p2Sets > p1Sets;
+      return wins ? 'text-green-600' : 'text-red-500';
+    },
+
     // True if both sets 0 and 1 are complete but split (different pair won each).
     showThirdSet(match) {
       const s0 = match.sets?.[0], s1 = match.sets?.[1];

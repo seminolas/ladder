@@ -518,19 +518,22 @@
 
                   <!-- Score content -->
                   <div class="flex-1">
-                    <p class="text-xs text-gray-400 font-medium mb-2">Match <span x-text="mi + 1"></span></p>
+                    <p class="text-xs text-gray-400 font-medium mb-2"
+                       x-text="'Match ' + (mi+1) + ': ' + match.pair1.map(i=>i+1).join(' & ') + ' vs ' + match.pair2.map(i=>i+1).join(' & ')"></p>
 
                     <!-- Pair names + vs -->
                     <div class="flex items-baseline mb-2">
                       <div class="flex-1 flex justify-end pr-3">
-                        <span class="font-semibold text-sm text-gray-800"
+                        <span class="font-semibold text-sm"
+                              :class="pairResultClass(match, 0)"
                               x-text="pairLabel(box, match.pair1)"></span>
                       </div>
                       <div class="w-8 text-center shrink-0">
                         <span class="text-gray-400 text-xs font-medium">vs</span>
                       </div>
                       <div class="flex-1 pl-3">
-                        <span class="font-semibold text-sm text-gray-800"
+                        <span class="font-semibold text-sm"
+                              :class="pairResultClass(match, 1)"
                               x-text="pairLabel(box, match.pair2)"></span>
                       </div>
                     </div>
@@ -546,7 +549,7 @@
                                  @change="setScore(bi, mi, setIdx, 0, $event.target.value); saveScores()"
                                  :disabled="session.status === 'closed' || !isAdmin"
                                  class="score-input w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none"
-                                 :class="setIsValid(match, setIdx) === false ? 'border-red-400 bg-red-50' : ''">
+                                 :class="scoreInputClass(match, setIdx, 0)">
                         </div>
                         <div class="w-8 text-center shrink-0">
                           <span class="text-gray-300 text-sm">–</span>
@@ -558,7 +561,7 @@
                                  @keydown.tab="handleScoreTab(bi, mi, setIdx, $event)"
                                  :disabled="session.status === 'closed' || !isAdmin"
                                  class="score-input w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none"
-                                 :class="setIsValid(match, setIdx) === false ? 'border-red-400 bg-red-50' : ''">
+                                 :class="scoreInputClass(match, setIdx, 1)">
                         </div>
                       </div>
                     </template>
