@@ -565,6 +565,12 @@ function appData() {
       return allScoresComplete(this.session.boxes);
     },
 
+    get canPrintLadder() {
+      return this.leaderboard.length > 0
+        && !!this.mostRecentSessionStatus
+        && this.mostRecentSessionStatus !== 'closed';
+    },
+
     // ── Close session ──────────────────────────────────────────────────────
     async closeSession() {
       if (!this.allScoresComplete) return;
@@ -683,6 +689,78 @@ function appData() {
     // ── Print ─────────────────────────────────────────────────────────────
     printBoxes() {
       window.print();
+    },
+
+    printLadder() {
+      const isoDate = this.sessionDates[0] ?? '';
+      const d = isoDate ? new Date(isoDate + 'T00:00:00') : null;
+      const dateStr = d
+        ? `${_DAYS[d.getDay()]}, ${_MONTHS[d.getMonth()]} ${d.getDate()}, ${d.getFullYear()}`
+        : '';
+      const players = this.leaderboard;
+      const n = players.length;
+
+      // Colour stops: deep blue → cyan → lime → amber → orange → red → light salmon
+      const stops = [
+        [0.00,  30,  58, 138],
+        [0.15,  29,  78, 216],
+        [0.28,   8, 145, 178],
+        [0.38, 101, 163,  13],
+        [0.50, 202, 138,   4],
+        [0.63, 249, 115,  22],
+        [0.78, 239,  68,  68],
+        [1.00, 252, 165, 165],
+      ];
+      const lerp = (idx) => {
+        const t = n <= 1 ? 0 : idx / (n - 1);
+        let lo = stops[0], hi = stops[stops.length - 1];
+        for (let k = 0; k < stops.length - 1; k++) {
+          if (t >= stops[k][0] && t <= stops[k + 1][0]) { lo = stops[k]; hi = stops[k + 1]; break; }
+        }
+        const u = hi[0] === lo[0] ? 0 : (t - lo[0]) / (hi[0] - lo[0]);
+        return `rgb(${Math.round(lo[1]+(hi[1]-lo[1])*u)},${Math.round(lo[2]+(hi[2]-lo[2])*u)},${Math.round(lo[3]+(hi[3]-lo[3])*u)})`;
+      };
+
+      const rows = players.map((name, i) => {
+        const esc = name.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+        return `<tr><td class="n" style="background:${lerp(i)}">${i+1}</td><td class="p">${esc}</td><td></td><td></td></tr>`;
+      }).join('\n');
+
+      const html = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Box Doubles Draw</title>
+<style>
+@page{size:A4 portrait;margin:1.5cm}
+*{box-sizing:border-box;margin:0;padding:0;-webkit-print-color-adjust:exact;print-color-adjust:exact}
+body{font-family:Arial,Helvetica,sans-serif;font-size:10pt}
+table{width:100%;border-collapse:collapse}
+td{border:1px solid #000;height:20pt;padding:0 5pt;vertical-align:middle}
+.n{width:36pt;text-align:center;font-weight:bold;color:#fff;text-shadow:0 0 3px rgba(0,0,0,.35)}
+.p{font-weight:bold;text-decoration:underline}
+.ht{font-size:13pt;font-weight:bold;text-align:center}
+.hd{font-weight:bold;text-align:center}
+.ha{width:55pt;font-weight:bold;text-align:center}
+.hs{width:90pt;font-weight:bold;text-align:center}
+</style>
+</head>
+<body>
+<table><tbody>
+<tr><td class="n"></td><td class="ht">Box Doubles Draw</td><td class="ha"></td><td class="hs"></td></tr>
+<tr><td class="n"></td><td class="hd">${dateStr}</td><td class="ha">Attend</td><td class="hs">Signature</td></tr>
+<tr><td></td><td></td><td></td><td></td></tr>
+<tr><td></td><td></td><td></td><td></td></tr>
+${rows}
+</tbody></table>
+<script>window.print()<\/script>
+</body>
+</html>`;
+
+      const w = window.open('', '_blank');
+      if (!w) { this.showToast('Pop-up blocked — allow pop-ups for this site', 'error'); return; }
+      w.document.write(html);
+      w.document.close();
     },
 
     // ── Toast ─────────────────────────────────────────────────────────────
