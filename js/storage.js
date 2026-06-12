@@ -107,8 +107,9 @@ const Storage = (() => {
     if (!res.ok) throw new Error(`GitHub read failed: ${res.status}`);
 
     const data    = await res.json();
-    const content = atob(data.content.replace(/\n/g, ''));
-    return { content: JSON.parse(content), sha: data.sha };
+    const raw     = atob(data.content.replace(/\n/g, ''));
+    const content = JSON.parse(decodeURIComponent(escape(raw)));
+    return { content, sha: data.sha };
   }
 
   async function writeFile(path, content, sha) {
