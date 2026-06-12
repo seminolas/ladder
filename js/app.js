@@ -91,7 +91,7 @@ function appData() {
       try {
         const lb = await Storage.getLeaderboard();
         if (lb) {
-          this.leaderboard = lb.content.players;
+          this.leaderboard = lb.content.players.map(normalizeName);
           this.leaderboardSha = lb.sha;
         }
         this.sessionDates = await Storage.listSessions();
@@ -536,6 +536,23 @@ function appData() {
 
     saveScores() {
       this.scheduleSave();
+    },
+
+    // Intercept Tab on the second-set right-side input so that if Alpine just
+    // made the third-set row visible, focus lands there instead of skipping it.
+    handleScoreTab(bi, mi, setIdx, event) {
+      if (setIdx !== 1) return;
+      event.preventDefault();
+      this.setScore(bi, mi, 1, 1, event.target.value);
+      this.saveScores();
+      const currentEl = event.target;
+      window.Alpine.nextTick(() => {
+        const all = [...document.querySelectorAll('.score-input:not([disabled])')].filter(
+          el => el.offsetParent !== null
+        );
+        const idx = all.indexOf(currentEl);
+        if (idx !== -1 && idx + 1 < all.length) all[idx + 1].focus();
+      });
     },
 
     getBoxStandings(boxIdx) {

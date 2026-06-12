@@ -537,7 +537,7 @@
                                  :value="match.sets[setIdx]?.[0] ?? ''"
                                  @change="setScore(bi, mi, setIdx, 0, $event.target.value); saveScores()"
                                  :disabled="session.status === 'closed' || !isAdmin"
-                                 class="w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none"
+                                 class="score-input w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none"
                                  :class="setIsValid(match, setIdx) === false ? 'border-red-400 bg-red-50' : ''">
                         </div>
                         <div class="w-8 text-center shrink-0">
@@ -547,8 +547,9 @@
                           <input type="number" min="0" max="99"
                                  :value="match.sets[setIdx]?.[1] ?? ''"
                                  @change="setScore(bi, mi, setIdx, 1, $event.target.value); saveScores()"
+                                 @keydown.tab="handleScoreTab(bi, mi, setIdx, $event)"
                                  :disabled="session.status === 'closed' || !isAdmin"
-                                 class="w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none"
+                                 class="score-input w-14 border rounded px-2 py-1.5 text-sm text-center focus:ring-2 focus:ring-blue-700 focus:outline-none"
                                  :class="setIsValid(match, setIdx) === false ? 'border-red-400 bg-red-50' : ''">
                         </div>
                       </div>
