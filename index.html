@@ -441,16 +441,16 @@
                 </colgroup>
                 <thead>
                   <tr>
-                    <th class="border-2 border-gray-700 bg-gray-100 text-center px-3 py-3 text-sm font-bold">Pairing</th>
+                    <th class="border-2 border-gray-700 bg-gray-100 text-center px-3 py-3 text-base font-bold uppercase">Pairing</th>
                     <template x-for="(name, pi) in box.players" :key="pi">
-                      <th class="border-2 border-gray-700 text-center px-2 py-3 font-bold text-sm leading-tight"
+                      <th class="border-2 border-gray-700 text-center px-2 py-3 font-bold text-base uppercase leading-tight"
                           x-text="boxDisplayName(box, pi)"></th>
                     </template>
                   </tr>
                   <tr>
                     <td class="px-3 py-2 text-xs text-gray-400" style="border-left-style:hidden"></td>
                     <template x-for="(name, pi) in box.players" :key="pi">
-                      <td class="text-center py-2 font-bold text-sm" x-text="pi + 1"
+                      <td class="text-center py-2 font-bold text-base" x-text="pi + 1"
                           :style="pi === box.players.length - 1 ? 'border-right-style:hidden' : ''"></td>
                     </template>
                   </tr>
@@ -458,7 +458,7 @@
                 <tbody>
                   <template x-for="(match, mi) in box.matches" :key="mi">
                     <tr>
-                      <td class="border-2 border-gray-700 px-3 py-7 text-center font-bold text-sm"
+                      <td class="border-2 border-gray-700 px-3 py-7 text-center font-bold text-base"
                           x-text="(match.pair1.map(i=>i+1).join(' & ') + '  v  ' + match.pair2.map(i=>i+1).join(' & '))"></td>
                       <template x-for="(name, pi) in box.players" :key="pi">
                         <td :class="isSitout(bi, mi, pi) ? 'sitout-cell bg-gray-400' : ''"
@@ -479,19 +479,19 @@
                 </colgroup>
                 <tbody>
                   <tr>
-                    <td class="border-2 border-gray-700 px-3 py-4 text-center font-bold text-sm">Matches Won</td>
+                    <td class="border-2 border-gray-700 px-3 py-4 text-center font-bold text-base uppercase">Matches Won</td>
                     <template x-for="p in box.players" :key="p">
                       <td class="border-2 border-gray-700 py-4"></td>
                     </template>
                   </tr>
                   <tr>
-                    <td class="border-2 border-gray-700 px-3 py-4 text-center font-bold text-sm">Games<br>(Won − Lost)</td>
+                    <td class="border-2 border-gray-700 px-3 py-4 text-center font-bold text-base uppercase">Games<br>(Won − Lost)</td>
                     <template x-for="p in box.players" :key="p">
                       <td class="border-2 border-gray-700 py-4"></td>
                     </template>
                   </tr>
                   <tr>
-                    <td class="border-2 border-gray-700 px-3 py-4 text-center font-bold text-sm">Points<br>(For − Against)</td>
+                    <td class="border-2 border-gray-700 px-3 py-4 text-center font-bold text-base uppercase">Points<br>(For − Against)</td>
                     <template x-for="p in box.players" :key="p">
                       <td class="border-2 border-gray-700 py-4"></td>
                     </template>
@@ -509,7 +509,7 @@
                 </colgroup>
                 <tbody>
                   <tr>
-                    <td class="border-2 border-gray-700 px-3 py-2 text-center font-bold text-sm">Final Placing</td>
+                    <td class="border-2 border-gray-700 px-3 py-2 text-center font-bold text-base uppercase">Final Placing</td>
                     <template x-for="p in box.players" :key="p">
                       <td class="border-2 border-gray-700 py-2"></td>
                     </template>
