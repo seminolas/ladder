@@ -171,7 +171,12 @@
             1,
             2
           ],
-          "sets": []
+          "sets": [
+            [
+              21,
+              9
+            ]
+          ]
         }
       ],
       "finalPlacings": null
