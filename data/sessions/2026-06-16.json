@@ -1,6 +1,6 @@
 {
   "date": "2026-06-16",
-  "status": "boxes_assigned",
+  "status": "in_progress",
   "attendees": [
     "Ray Lugsanay",
     "Shane Ringrose",
@@ -52,7 +52,12 @@
             2,
             3
           ],
-          "sets": []
+          "sets": [
+            [
+              22,
+              20
+            ]
+          ]
         },
         {
           "pair1": [
