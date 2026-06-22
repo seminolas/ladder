@@ -52,6 +52,41 @@ encryptPAT('github_pat_...', 'your-password').then(console.log);
 
 Paste the output into `config.json` as `"encryptedPAT"`, then commit and push.
 
+## Staging vs main — data separation
+
+The app is deployed from two branches. Both deployments share the same codebase
+but write data to different branches:
+
+| Deployment | URL path | Reads/writes data to |
+|---|---|---|
+| Production | `/` | `main` branch |
+| Staging | `/staging/` | `staging` branch |
+
+This is handled by the GitHub Actions deploy workflow (`deploy.yml`), which
+injects the correct `"branch"` value into each deployment's `config.json` at
+build time. The `config.json` committed to the repo is irrelevant at runtime.
+
+### Merging staging → main without bringing data across
+
+Session and leaderboard JSON files live under `data/`. These should never be
+merged from staging into main (or vice versa) — each branch's data is
+independent.
+
+`.gitattributes` marks `data/**` with a custom `ours` merge driver that silently
+keeps the current branch's version of any data file during a merge. This means
+a plain `git merge staging` on `main` will bring in code changes and ignore all
+`data/` changes automatically.
+
+**One-time setup required on each machine that does merges:**
+
+```bash
+git config merge.ours.driver true
+```
+
+This registers the `ours` driver (a no-op that exits 0, telling git to keep the
+working-tree file untouched). Without this step the attribute is ignored and
+data file conflicts will surface manually as before.
+
 ## Running tests
 
 ```
