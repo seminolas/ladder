@@ -135,12 +135,20 @@
             🖨 Boxes
           </button>
         </template>
-        <!-- Tab 3: WhatsApp share -->
+        <!-- Tab 3: WhatsApp share + HC sync -->
         <template x-if="view === 'session' && sessionTab === 3 && session && session.status === 'closed' && session.leaderboardAfter">
-          <button @click="shareOnWhatsApp()"
-                  class="text-xs bg-green-100 text-green-700 hover:bg-green-200 rounded px-2 py-1 font-medium whitespace-nowrap">
-            📱 Share
-          </button>
+          <div class="flex items-center gap-1">
+            <button @click="shareOnWhatsApp()"
+                    class="text-xs bg-green-100 text-green-700 hover:bg-green-200 rounded px-2 py-1 font-medium whitespace-nowrap">
+              📱 Share
+            </button>
+            <template x-if="isAdmin">
+              <button @click="syncHelloClub()"
+                      class="text-xs bg-blue-100 text-blue-700 hover:bg-blue-200 rounded px-2 py-1 font-medium whitespace-nowrap">
+                🔄 Sync HC
+              </button>
+            </template>
+          </div>
         </template>
 
         <!-- ── SESSION admin buttons: normal mode (Edit + Close) ── -->
@@ -681,6 +689,47 @@
         </div>
       </template>
 
+    </div>
+
+    <!-- ── HelloClub Sync Modal ──────────────────────────────────────── -->
+    <div x-show="hcSync.open"
+         class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 no-print"
+         style="display:none">
+      <div class="bg-white rounded-xl shadow-xl w-full max-w-lg mx-4 flex flex-col"
+           style="max-height:80vh">
+
+        <!-- Header -->
+        <div class="px-5 py-4 border-b border-gray-200 flex items-center justify-between shrink-0">
+          <h2 class="font-bold text-gray-800">HelloClub Sync</h2>
+          <span x-show="hcSync.running"
+                class="text-xs text-blue-500 animate-pulse">Running…</span>
+        </div>
+
+        <!-- Log area -->
+        <div class="flex-1 overflow-y-auto px-5 py-4 font-mono text-xs space-y-0.5"
+             x-ref="hcLog"
+             x-effect="hcSync.log.length && $nextTick(() => $refs.hcLog.scrollTop = $refs.hcLog.scrollHeight)">
+          <template x-for="(line, i) in hcSync.log" :key="i">
+            <div :class="{
+                   'text-green-600': line.type === 'ok',
+                   'text-red-500':   line.type === 'error',
+                   'text-yellow-600':line.type === 'warn',
+                   'text-gray-500':  line.type === 'info',
+                 }"
+                 x-text="line.text || ' '"></div>
+          </template>
+        </div>
+
+        <!-- Footer -->
+        <div class="px-5 py-3 border-t border-gray-200 flex justify-end shrink-0">
+          <button @click="hcSync.open = false"
+                  :disabled="hcSync.running"
+                  :class="hcSync.running ? 'opacity-40 cursor-not-allowed' : 'hover:bg-gray-100'"
+                  class="text-sm px-4 py-1.5 border border-gray-300 rounded text-gray-700">
+            Close
+          </button>
+        </div>
+      </div>
     </div>
 
   </div>

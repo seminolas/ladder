@@ -8,6 +8,32 @@ A shared password unlocks admin features (create sessions, edit scores, import l
 
 Share the password with committee members verbally or via a secure channel. They enter it once per device via the "Admin Login" button and stay logged in.
 
+## HelloClub sync (admin only)
+
+Admins can sync session attendees to HelloClub's Tuesday Box event via the **🔄 Sync HC** button on the results tab of a closed session.
+
+The button is visible only to admins and only when a session is closed with a leaderboard.
+
+### Setting up the HelloClub API key
+
+1. Obtain the HelloClub API key for the club.
+2. Add it to `.env`:
+   ```
+   HC_API_KEY=hc_...
+   ```
+3. Encrypt it (alongside your PAT if also rotating):
+   ```
+   node scripts/encrypt-pat.js your-current-password
+   ```
+4. Copy the `encryptedHCKey` output into `config.json`.
+5. Commit and push `config.json`.
+
+The key is decrypted in-memory alongside the PAT when an admin logs in. Non-admins never have access to it.
+
+### Member name mapping
+
+`data/helloclub-members.json` maps ladder player names → HelloClub member IDs. When a player's ladder name changes (e.g. decorators removed), add the new name to their `names` array rather than creating a duplicate entry.
+
 ## Rotating the PAT
 
 When the PAT expires or needs replacing:
@@ -22,7 +48,7 @@ When the PAT expires or needs replacing:
    ```
    node scripts/encrypt-pat.js your-current-password
    ```
-4. Copy the output into `config.json` as `"encryptedPAT"`.
+4. Copy the `encryptedPAT` output into `config.json` (also copy `encryptedHCKey` if it was re-encrypted).
 5. Remove `GH_PAT` from `.env` (keep only `GH_ADMIN_PASSWORD`).
 6. Commit and push `config.json`.
 

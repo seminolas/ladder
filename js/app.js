@@ -38,6 +38,9 @@ function appData() {
     showAddPlayer: false,
     _saveTimer: null,
 
+    // HelloClub sync modal
+    hcSync: { open: false, running: false, log: [] },
+
     // ── Init ───────────────────────────────────────────────────────────────
     async init() {
       this.branch  = await Storage.getBranch();
@@ -758,6 +761,117 @@ function appData() {
       lines.push(`${base}/#/session/${date}/results`);
 
       window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+    },
+
+    // ── HelloClub sync ────────────────────────────────────────────────────
+    async syncHelloClub() {
+      const HC_BASE = 'https://api.helloclub.com';
+      const hcKey   = Storage.getHCKey();
+
+      this.hcSync = { open: true, running: true, log: [] };
+      const log = (text, type = 'info') => this.hcSync.log.push({ text, type });
+
+      try {
+        if (!hcKey) throw new Error('HelloClub API key not configured — add encryptedHCKey to config.json (see README)');
+
+        // Load name→id mapping
+        const mapping = await Storage.getHCMembers();
+        const nameToId = {}, idToLadderName = {};
+        for (const entry of mapping) {
+          idToLadderName[entry.id] = entry.names[0];
+          for (const n of entry.names) nameToId[n] = entry.id;
+        }
+
+        // Find the Tuesday Box event for this session date
+        const date = this.session.date;
+        const d = new Date(date + 'T00:00:00');
+        const dateLabel = d.toLocaleDateString('en-NZ', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
+
+        const eventRes = await fetch(
+          `${HC_BASE}/event?fromDate=${date}T00:00:00Z&toDate=${date}T23:59:59Z&sort=startDate`,
+          { headers: { 'X-Api-Key': hcKey } }
+        );
+        if (!eventRes.ok) throw new Error(`HelloClub API error: ${eventRes.status}`);
+        const eventData = await eventRes.json();
+        const event = (eventData.events || []).find(e => e.name && e.name.includes('Box'));
+        if (!event) throw new Error(`No Box event found in HelloClub for ${date}`);
+
+        log(`Connected to HelloClub.`);
+        log(`Found event: "${event.name}" for ${dateLabel}`);
+        log(`Event ID: ${event.id}`);
+
+        // Fetch already-registered attendees
+        const attRes = await fetch(
+          `${HC_BASE}/eventAttendee?event=${event.id}&limit=200`,
+          { headers: { 'X-Api-Key': hcKey } }
+        );
+        if (!attRes.ok) throw new Error(`Failed to fetch event attendees: ${attRes.status}`);
+        const attData = await attRes.json();
+        const registeredIds = new Set((attData.attendees || []).map(a => a.member?.id).filter(Boolean));
+
+        // Categorise ladder attendees
+        const alreadyInHC = [], toSync = [], notMapped = [];
+        for (const name of this.session.attendees) {
+          const hcId = nameToId[name];
+          if (!hcId)                   { notMapped.push(name); continue; }
+          if (registeredIds.has(hcId)) { alreadyInHC.push(name); continue; }
+          toSync.push({ name, hcId });
+        }
+
+        log('');
+        log(`Players already marked as attending in HelloClub (${alreadyInHC.length}):`);
+        if (alreadyInHC.length === 0) log('  (none)');
+        for (const name of alreadyInHC) log(`  ✓ ${name}`, 'ok');
+
+        log('');
+        log(`Players not yet marked as attending (${toSync.length + notMapped.length}):`);
+        for (const { name } of toSync)  log(`  → ${name}`);
+        for (const name of notMapped)   log(`  ? ${name}  (not in mapping)`, 'warn');
+
+        // POST each new attendee
+        if (toSync.length > 0) {
+          log('');
+          log(`Marking ${toSync.length} player${toSync.length === 1 ? '' : 's'} as attending…`);
+          let synced = 0, failed = 0;
+          for (const { name, hcId } of toSync) {
+            try {
+              const res = await fetch(`${HC_BASE}/eventAttendee`, {
+                method: 'POST',
+                headers: { 'X-Api-Key': hcKey, 'Content-Type': 'application/json' },
+                body: JSON.stringify({ event: event.id, member: hcId }),
+              });
+              if (!res.ok) {
+                const err = await res.json().catch(() => ({}));
+                throw new Error(err.message || `HTTP ${res.status}`);
+              }
+              log(`  ✓ ${name}`, 'ok');
+              synced++;
+              await new Promise(r => setTimeout(r, 300));
+            } catch (e) {
+              log(`  ✗ ${name}: ${e.message}`, 'error');
+              failed++;
+            }
+          }
+
+          log('');
+          log('─'.repeat(48));
+          const parts = [];
+          if (alreadyInHC.length) parts.push(`${alreadyInHC.length} already in HelloClub`);
+          if (synced)             parts.push(`${synced} synced`);
+          if (notMapped.length)   parts.push(`${notMapped.length} not in mapping`);
+          if (failed)             parts.push(`${failed} failed`);
+          log(`Done. ${parts.join(', ')}.`);
+        } else {
+          log('');
+          log('─'.repeat(48));
+          log(`Done. ${alreadyInHC.length} already in HelloClub, nothing new to sync.`);
+        }
+      } catch (e) {
+        log('');
+        log(`Error: ${e.message}`, 'error');
+      }
+
+      this.hcSync.running = false;
     },
 
     // ── Leaderboard delta ─────────────────────────────────────────────────

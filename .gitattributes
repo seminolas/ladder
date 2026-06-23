@@ -3,3 +3,4 @@
 # vice versa). Requires the "ours" merge driver to be configured once per
 # machine — see README.md for instructions.
 data/** merge=ours
+data/helloclub-members.json -merge
