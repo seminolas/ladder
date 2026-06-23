@@ -1,6 +1,6 @@
 {
   "date": "2026-06-23",
-  "status": "attendance",
+  "status": "boxes_assigned",
   "attendees": [
     "Ray Lugsanay",
     "Han Lin",
@@ -34,7 +34,385 @@
     "Martin Hedlund",
     "Dre King"
   ],
-  "boxes": [],
+  "boxes": [
+    {
+      "players": [
+        "Ray Lugsanay",
+        "Martin Hedlund",
+        "Han Lin",
+        "Trevor Hollings"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    },
+    {
+      "players": [
+        "Shane Ringrose",
+        "*** Thomas ***",
+        "Kenzie Peachey",
+        "Vilius Vaivada"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    },
+    {
+      "players": [
+        "Dee Phetsomphou",
+        "Noushad Kasim",
+        "Eric Hehne",
+        "Chia BingHon"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    },
+    {
+      "players": [
+        "Aiko Gumban",
+        "Kareen Hansard",
+        "Karlos Hanna",
+        "Tricia Liew"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    },
+    {
+      "players": [
+        "Emil John",
+        "Jeet Arora",
+        "Dave Jackson",
+        "Joshua Jijo",
+        "Jenelyn Frane"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            2,
+            3
+          ],
+          "pair2": [
+            1,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            3,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            4
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    },
+    {
+      "players": [
+        "Lachlan Smith",
+        "Dre King",
+        "Emil Zaharison",
+        "Toby Ringrose",
+        "Amanda Lee"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            2,
+            3
+          ],
+          "pair2": [
+            1,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            3,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            4
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    },
+    {
+      "players": [
+        "Stephen Pashley",
+        "*** Joshin Jacob Johnson ***",
+        "Madhav Kapoor",
+        "Jackson Finlayson",
+        "brook meyer"
+      ],
+      "matches": [
+        {
+          "pair1": [
+            0,
+            1
+          ],
+          "pair2": [
+            2,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            2,
+            3
+          ],
+          "pair2": [
+            1,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            2
+          ],
+          "pair2": [
+            3,
+            4
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            3
+          ],
+          "pair2": [
+            1,
+            2
+          ],
+          "sets": []
+        },
+        {
+          "pair1": [
+            0,
+            4
+          ],
+          "pair2": [
+            1,
+            3
+          ],
+          "sets": []
+        }
+      ],
+      "finalPlacings": null
+    }
+  ],
   "leaderboardBefore": [
     "Rory Weston",
     "*** Shivam ***",
