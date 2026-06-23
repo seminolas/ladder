@@ -12,6 +12,7 @@ const Storage = (() => {
   let _branch = null;
   let _encryptedPAT = null;
   let _pat = null;         // decrypted PAT held in memory only
+  let _hcKey = null;       // decrypted HelloClub API key held in memory only
 
   // ── Remote config (config.json) ──────────────────────────────────────────
 
@@ -55,6 +56,7 @@ const Storage = (() => {
       if (!cfg.encryptedPAT) return false;
       _encryptedPAT = cfg.encryptedPAT;
       _pat = await decryptPAT(_encryptedPAT, password);
+      if (cfg.encryptedHCKey) _hcKey = await decryptPAT(cfg.encryptedHCKey, password);
       return true;
     } catch {
       // Saved password no longer works (PAT rotated) — clear it
@@ -69,13 +71,17 @@ const Storage = (() => {
     if (!cfg.encryptedPAT) throw new Error('No encrypted PAT found in config.json');
     _encryptedPAT = cfg.encryptedPAT;
     _pat = await decryptPAT(_encryptedPAT, password);
+    if (cfg.encryptedHCKey) _hcKey = await decryptPAT(cfg.encryptedHCKey, password);
     localStorage.setItem(ADMIN_PASSWORD_KEY, password);
   }
 
   function logout() {
     _pat = null;
+    _hcKey = null;
     localStorage.removeItem(ADMIN_PASSWORD_KEY);
   }
+
+  function getHCKey() { return _hcKey; }
 
   function isAdmin() {
     return !!_pat;
@@ -171,6 +177,12 @@ const Storage = (() => {
       .sort((a, b) => b.date.localeCompare(a.date));
   }
 
+  async function getHCMembers() {
+    const res = await fetch('data/helloclub-members.json');
+    if (!res.ok) throw new Error('HelloClub member mapping not found');
+    return res.json();
+  }
+
   async function getLeaderboard()             { return readFile('data/leaderboard.json'); }
   async function saveLeaderboard(players, sha) {
     const content = { players, updatedAt: new Date().toISOString().split('T')[0] };
@@ -180,9 +192,10 @@ const Storage = (() => {
   async function saveSession(date, sessionData, sha) { return writeFile(`data/sessions/${date}.json`, sessionData, sha); }
 
   return {
-    getBranch, autoLogin, login, logout, isAdmin,
+    getBranch, autoLogin, login, logout, isAdmin, getHCKey,
     getLeaderboard, saveLeaderboard,
     getSession, saveSession,
     listSessions, listSessionFiles, deleteFile,
+    getHCMembers,
   };
 })();
