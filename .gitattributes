@@ -1,0 +1,5 @@
+# When merging between main and staging, always keep the current branch's
+# data files. This prevents staging session data from polluting main (and
+# vice versa). Requires the "ours" merge driver to be configured once per
+# machine — see README.md for instructions.
+data/** merge=ours
