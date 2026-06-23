@@ -705,9 +705,59 @@ function appData() {
     shareOnWhatsApp() {
       const base  = 'https://seminolas.github.io/ladder';
       const date  = this.session.date;
-      const label = formatDate(date);
-      const msg   = `🏸 ${label} — Results: ${base}/#/session/${date}/results | Leaderboard: ${base}/#/session/${date}/leaderboard`;
-      window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`, '_blank');
+      const d     = new Date(date + 'T00:00:00');
+      const label = d.toLocaleDateString('en-NZ', { weekday: 'short', day: 'numeric', month: 'short' });
+
+      const lines = [`🏸 ${label} — Box Night`];
+
+      for (let bi = 0; bi < this.session.boxes.length; bi++) {
+        const box = this.session.boxes[bi];
+        lines.push('');
+        const names = box.players.map((_, i) => this.boxDisplayName(box, i)).join(' · ');
+        lines.push(`Box ${bi + 1}: ${names}`);
+        lines.push('');
+
+        // Match scores — winner listed first, winner's score first in each set
+        for (const match of box.matches) {
+          const { pair1, pair2, sets } = match;
+          const played = (sets || []).filter(s => s[0] !== '' && s[0] != null && s[1] !== '' && s[1] != null);
+          if (!played.length) continue;
+
+          let p1Sets = 0, p2Sets = 0;
+          for (const [s1, s2] of played) { if (Number(s1) > Number(s2)) p1Sets++; else p2Sets++; }
+          const p1Wins = p1Sets >= p2Sets;
+
+          const winnerLabel = p1Wins ? this.pairLabel(box, pair1) : this.pairLabel(box, pair2);
+          const loserLabel  = p1Wins ? this.pairLabel(box, pair2) : this.pairLabel(box, pair1);
+          const scores = played.map(([s1, s2]) => { const [w, l] = p1Wins ? [s1, s2] : [s2, s1]; return `${w}-${l}`; }).join(', ');
+          lines.push(`${winnerLabel} vs ${loserLabel} — ${scores}`);
+        }
+
+        // Final standings with stats and ladder moves
+        const standings = computeBoxStandings(box, this.session.leaderboardBefore);
+        lines.push('');
+        lines.push('Final standings:');
+        for (const s of standings) {
+          const { name, matchesWon, setsWon, setsLost, pointsFor, pointsAgainst, placing } = s;
+          const winsStr = `${matchesWon} ${matchesWon === 1 ? 'win' : 'wins'}`;
+          const gDiff   = setsWon - setsLost;
+          const pDiff   = pointsFor - pointsAgainst;
+          const gStr    = gDiff >= 0 ? `+${gDiff}` : `${gDiff}`;
+          const pStr    = pDiff >= 0 ? `+${pDiff}` : `${pDiff}`;
+
+          const before = (this.session.leaderboardBefore?.indexOf(name) ?? -1) + 1;
+          const after  = (this.session.leaderboardAfter?.indexOf(name)  ?? -1) + 1;
+          const delta  = (before > 0 && after > 0) ? before - after : 0;
+          const moveStr = delta > 0 ? `goes up ${before}→${after}` : delta < 0 ? `goes down ${before}→${after}` : `stays at ${after || before}`;
+
+          lines.push(`${placing}. ${name}: (${winsStr}, ${gStr} games, ${pStr} pts) ${moveStr}`);
+        }
+      }
+
+      lines.push('');
+      lines.push(`${base}/#/session/${date}/results`);
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
     },
 
     // ── Leaderboard delta ─────────────────────────────────────────────────

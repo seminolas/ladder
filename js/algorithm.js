@@ -8,9 +8,9 @@ const PAIRINGS_4 = [
 const PAIRINGS_5 = [
   { pair1: [0,1], pair2: [2,4] },
   { pair1: [2,3], pair2: [1,4] },
-  { pair1: [3,4], pair2: [0,2] },
+  { pair1: [0,2], pair2: [3,4] },
   { pair1: [0,3], pair2: [1,2] },
-  { pair1: [1,3], pair2: [0,4] },
+  { pair1: [0,4], pair2: [1,3] },
 ];
 
 // Which player index sits out each match in a box of 5
