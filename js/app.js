@@ -784,6 +784,7 @@ function appData() {
     async syncHelloClub() {
       const HC_BASE = 'https://api.helloclub.com';
       const hcKey   = Storage.getHCKey();
+      const proxy   = url => 'https://corsproxy.io/?url=' + encodeURIComponent(url);
 
       this.hcSync = { open: true, running: true, log: [] };
       const log = (text, type = 'info') => this.hcSync.log.push({ text, type });
@@ -805,7 +806,7 @@ function appData() {
         const dateLabel = d.toLocaleDateString('en-NZ', { weekday: 'short', day: 'numeric', month: 'long', year: 'numeric' });
 
         const eventRes = await fetch(
-          `${HC_BASE}/event?fromDate=${date}T00:00:00Z&toDate=${date}T23:59:59Z&sort=startDate`,
+          proxy(`${HC_BASE}/event?fromDate=${date}T00:00:00Z&toDate=${date}T23:59:59Z&sort=startDate`),
           { headers: { 'X-Api-Key': hcKey } }
         );
         if (!eventRes.ok) throw new Error(`HelloClub API error: ${eventRes.status}`);
@@ -819,7 +820,7 @@ function appData() {
 
         // Fetch already-registered attendees
         const attRes = await fetch(
-          `${HC_BASE}/eventAttendee?event=${event.id}&limit=200`,
+          proxy(`${HC_BASE}/eventAttendee?event=${event.id}&limit=200`),
           { headers: { 'X-Api-Key': hcKey } }
         );
         if (!attRes.ok) throw new Error(`Failed to fetch event attendees: ${attRes.status}`);
@@ -852,7 +853,7 @@ function appData() {
           let synced = 0, failed = 0;
           for (const { name, hcId } of toSync) {
             try {
-              const res = await fetch(`${HC_BASE}/eventAttendee`, {
+              const res = await fetch(proxy(`${HC_BASE}/eventAttendee`), {
                 method: 'POST',
                 headers: { 'X-Api-Key': hcKey, 'Content-Type': 'application/json' },
                 body: JSON.stringify({ event: event.id, member: hcId }),
