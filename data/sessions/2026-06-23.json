@@ -92,7 +92,12 @@
             1,
             2
           ],
-          "sets": []
+          "sets": [
+            [
+              13,
+              21
+            ]
+          ]
         }
       ],
       "finalPlacings": null
