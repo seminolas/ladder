@@ -711,6 +711,24 @@ function appData() {
       const d     = new Date(date + 'T00:00:00');
       const label = d.toLocaleDateString('en-NZ', { weekday: 'short', day: 'numeric', month: 'short' });
 
+      const lines = [
+        `🏸 ${label} — Box Night`,
+        '',
+        `Results: ${base}/#/session/${date}/results`,
+        `Ladder:  ${base}/#/session/${date}/leaderboard`,
+      ];
+
+      window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
+    },
+
+    // ── WhatsApp share (verbose) — kept for future use ────────────────────
+    /*
+    shareOnWhatsAppVerbose() {
+      const base  = 'https://seminolas.github.io/ladder';
+      const date  = this.session.date;
+      const d     = new Date(date + 'T00:00:00');
+      const label = d.toLocaleDateString('en-NZ', { weekday: 'short', day: 'numeric', month: 'short' });
+
       const lines = [`🏸 ${label} — Box Night`];
 
       for (let bi = 0; bi < this.session.boxes.length; bi++) {
@@ -720,7 +738,6 @@ function appData() {
         lines.push(`Box ${bi + 1}: ${names}`);
         lines.push('');
 
-        // Match scores — winner listed first, winner's score first in each set
         for (const match of box.matches) {
           const { pair1, pair2, sets } = match;
           const played = (sets || []).filter(s => s[0] !== '' && s[0] != null && s[1] !== '' && s[1] != null);
@@ -736,7 +753,6 @@ function appData() {
           lines.push(`${winnerLabel} vs ${loserLabel} — ${scores}`);
         }
 
-        // Final standings with stats and ladder moves
         const standings = computeBoxStandings(box, this.session.leaderboardBefore);
         lines.push('');
         lines.push('Final standings:');
@@ -762,6 +778,7 @@ function appData() {
 
       window.open(`https://wa.me/?text=${encodeURIComponent(lines.join('\n'))}`, '_blank');
     },
+    */
 
     // ── HelloClub sync ────────────────────────────────────────────────────
     async syncHelloClub() {
