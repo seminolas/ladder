@@ -1,6 +1,6 @@
 {
   "date": "2026-06-23",
-  "status": "boxes_assigned",
+  "status": "in_progress",
   "attendees": [
     "Ray Lugsanay",
     "Han Lin",
@@ -52,7 +52,12 @@
             2,
             3
           ],
-          "sets": []
+          "sets": [
+            [
+              21,
+              18
+            ]
+          ]
         },
         {
           "pair1": [
