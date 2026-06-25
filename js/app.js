@@ -789,11 +789,10 @@ function appData() {
 
     // ── HelloClub sync ────────────────────────────────────────────────────
     async syncHelloClub() {
-      const HC_BASE  = 'https://api.helloclub.com';
-      const HC_CLUB  = '5cf83f5627b7240004667ef1'; // Northland Badminton Association
-      const hcKey    = Storage.getHCKey();
-      const proxy    = url => 'https://corsproxy.io/?url=' + encodeURIComponent(url);
-      const hcHeaders = key => ({ 'X-Api-Key': key, 'X-Club-Id': HC_CLUB });
+      const HC_BASE   = 'https://northlandbadminton.helloclub.com/api';
+      const hcKey     = Storage.getHCKey();
+      const proxy     = url => 'https://corsproxy.io/?url=' + encodeURIComponent(url);
+      const hcHeaders = key => ({ 'X-Api-Key': key });
 
       this.hcSync = { open: true, running: true, log: [] };
       const log = (text, type = 'info') => this.hcSync.log.push({ text, type });
