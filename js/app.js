@@ -305,9 +305,16 @@ function appData() {
       const q = this.sessionSearch.trim().toLowerCase();
       const lb = this.attendanceLeaderboard;
       if (!q) return lb.map((name, i) => ({ name, rank: i + 1 }));
+      const words = name => name.replace(/^\*+\s*|\s*\*+$/g, '').toLowerCase().split(/\s+/);
       return lb
         .map((name, i) => ({ name, rank: i + 1 }))
-        .filter(p => p.name.toLowerCase().includes(q));
+        .filter(p => p.name.toLowerCase().includes(q))
+        .sort((a, b) => {
+          const aWord = words(a.name).some(w => w.startsWith(q)) ? 0 : 1;
+          const bWord = words(b.name).some(w => w.startsWith(q)) ? 0 : 1;
+          if (aWord !== bWord) return aWord - bWord;
+          return a.rank - b.rank;  // preserve leaderboard order within tier
+        });
     },
 
     get searchHasNoMatch() {
@@ -809,7 +816,10 @@ function appData() {
           proxy(`${HC_BASE}/event?fromDate=${date}T00:00:00Z&toDate=${date}T23:59:59Z&sort=startDate`),
           { headers: { 'X-Api-Key': hcKey } }
         );
-        if (!eventRes.ok) throw new Error(`HelloClub API error: ${eventRes.status}`);
+        if (!eventRes.ok) {
+          const body = await eventRes.text().catch(() => '');
+          throw new Error(`HelloClub API error: ${eventRes.status}${body ? ' — ' + body : ''}`);
+        }
         const eventData = await eventRes.json();
         const event = (eventData.events || []).find(e => e.name && e.name.includes('Box'));
         if (!event) throw new Error(`No Box event found in HelloClub for ${date}`);
