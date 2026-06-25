@@ -816,7 +816,10 @@ function appData() {
           proxy(`${HC_BASE}/event?fromDate=${date}T00:00:00Z&toDate=${date}T23:59:59Z&sort=startDate`),
           { headers: { 'X-Api-Key': hcKey } }
         );
-        if (!eventRes.ok) throw new Error(`HelloClub API error: ${eventRes.status}`);
+        if (!eventRes.ok) {
+          const body = await eventRes.text().catch(() => '');
+          throw new Error(`HelloClub API error: ${eventRes.status}${body ? ' — ' + body : ''}`);
+        }
         const eventData = await eventRes.json();
         const event = (eventData.events || []).find(e => e.name && e.name.includes('Box'));
         if (!event) throw new Error(`No Box event found in HelloClub for ${date}`);
