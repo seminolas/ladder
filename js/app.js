@@ -305,9 +305,16 @@ function appData() {
       const q = this.sessionSearch.trim().toLowerCase();
       const lb = this.attendanceLeaderboard;
       if (!q) return lb.map((name, i) => ({ name, rank: i + 1 }));
+      const words = name => name.replace(/^\*+\s*|\s*\*+$/g, '').toLowerCase().split(/\s+/);
       return lb
         .map((name, i) => ({ name, rank: i + 1 }))
-        .filter(p => p.name.toLowerCase().includes(q));
+        .filter(p => p.name.toLowerCase().includes(q))
+        .sort((a, b) => {
+          const aWord = words(a.name).some(w => w.startsWith(q)) ? 0 : 1;
+          const bWord = words(b.name).some(w => w.startsWith(q)) ? 0 : 1;
+          if (aWord !== bWord) return aWord - bWord;
+          return a.rank - b.rank;  // preserve leaderboard order within tier
+        });
     },
 
     get searchHasNoMatch() {
