@@ -789,9 +789,11 @@ function appData() {
 
     // ── HelloClub sync ────────────────────────────────────────────────────
     async syncHelloClub() {
-      const HC_BASE = 'https://api.helloclub.com';
-      const hcKey   = Storage.getHCKey();
-      const proxy   = url => 'https://corsproxy.io/?url=' + encodeURIComponent(url);
+      const HC_BASE  = 'https://api.helloclub.com';
+      const HC_CLUB  = '5cf83f5627b7240004667ef1'; // Northland Badminton Association
+      const hcKey    = Storage.getHCKey();
+      const proxy    = url => 'https://corsproxy.io/?url=' + encodeURIComponent(url);
+      const hcHeaders = key => ({ 'X-Api-Key': key, 'X-Club-Id': HC_CLUB });
 
       this.hcSync = { open: true, running: true, log: [] };
       const log = (text, type = 'info') => this.hcSync.log.push({ text, type });
@@ -814,7 +816,7 @@ function appData() {
 
         const eventRes = await fetch(
           proxy(`${HC_BASE}/event?fromDate=${date}T00:00:00Z&toDate=${date}T23:59:59Z&sort=startDate`),
-          { headers: { 'X-Api-Key': hcKey } }
+          { headers: hcHeaders(hcKey) }
         );
         if (!eventRes.ok) {
           const body = await eventRes.text().catch(() => '');
@@ -831,7 +833,7 @@ function appData() {
         // Fetch already-registered attendees
         const attRes = await fetch(
           proxy(`${HC_BASE}/eventAttendee?event=${event.id}&limit=200`),
-          { headers: { 'X-Api-Key': hcKey } }
+          { headers: hcHeaders(hcKey) }
         );
         if (!attRes.ok) throw new Error(`Failed to fetch event attendees: ${attRes.status}`);
         const attData = await attRes.json();
@@ -865,7 +867,7 @@ function appData() {
             try {
               const res = await fetch(proxy(`${HC_BASE}/eventAttendee`), {
                 method: 'POST',
-                headers: { 'X-Api-Key': hcKey, 'Content-Type': 'application/json' },
+                headers: { ...hcHeaders(hcKey), 'Content-Type': 'application/json' },
                 body: JSON.stringify({ event: event.id, member: hcId }),
               });
               if (!res.ok) {
